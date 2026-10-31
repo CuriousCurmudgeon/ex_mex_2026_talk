@@ -31,39 +31,32 @@ defmodule CantinaWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://phoenix.hexdocs.pm/scopes.html)"
 
+  attr :title, :string, default: nil, doc: "the screen name in the header, as \"Table 42\""
+  attr :wide, :boolean, default: false, doc: "use the full width, for kitchen screens"
+
   slot :inner_block, required: true
+  slot :actions, doc: "controls on the right of the header"
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8">
-      <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
-          <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
-        </a>
-      </div>
-      <div class="flex-none">
-        <ul class="flex px-1 space-x-4 items-center">
-          <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
-          </li>
-          <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
-          </li>
-          <li>
-            <.theme_toggle />
-          </li>
-          <li>
-            <a href="https://phoenix.hexdocs.pm/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
-            </a>
-          </li>
-        </ul>
+    <header class="border-b border-base-300 bg-base-200/60 backdrop-blur">
+      <div class={[
+        "mx-auto flex items-center justify-between gap-4 px-4 py-3 sm:px-6",
+        if(@wide, do: "max-w-none", else: "max-w-3xl")
+      ]}>
+        <div class="flex items-baseline gap-3">
+          <span class="text-xl font-black tracking-tight text-amber-500">🌮 Cantina</span>
+          <span :if={@title} class="text-lg font-semibold">{@title}</span>
+        </div>
+        <div class="flex items-center gap-3">
+          {render_slot(@actions)}
+          <.theme_toggle />
+        </div>
       </div>
     </header>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
+    <main class="px-4 py-6 sm:px-6">
+      <div class={["mx-auto space-y-6", if(@wide, do: "max-w-none", else: "max-w-3xl")]}>
         {render_slot(@inner_block)}
       </div>
     </main>

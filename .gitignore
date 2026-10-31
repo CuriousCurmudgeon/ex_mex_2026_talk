@@ -35,3 +35,6 @@ cantina-*.tar
 npm-debug.log
 /assets/node_modules/
 
+
+# Playwright MCP output
+/.playwright-mcp/

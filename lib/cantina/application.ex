@@ -11,8 +11,11 @@ defmodule Cantina.Application do
       CantinaWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:cantina, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Cantina.PubSub},
-      # Start a worker by calling: Cantina.Worker.start_link(arg)
-      # {Cantina.Worker, arg},
+      Cantina.Presence,
+      Cantina.Menu,
+      Cantina.Kitchen,
+      Cantina.Orders,
+      Cantina.Rush,
       # Start to serve requests, typically the last entry
       CantinaWeb.Endpoint
     ]

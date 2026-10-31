@@ -18,6 +18,12 @@ defmodule CantinaWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    live "/t/:table_id", DinerLive
+    live "/kitchen", StationPickerLive
+    live "/kitchen/:station", StationLive
+    live "/expo", ExpoLive
+    live "/board", BoardLive
   end
 
   # Other scopes may use custom stacks.
