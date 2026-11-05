@@ -70,19 +70,12 @@ defmodule CantinaWeb.Layouts do
     """
   end
 
-  @doc "The (T)ExMex Cantina wordmark: Tex-Mex food at ExMex."
+  @doc "The (T)ExMex wordmark: Tex-Mex food at ExMex."
   def wordmark(assigns) do
     ~H"""
-    <div
-      id="wordmark"
-      class="flex items-baseline gap-1.5 font-display text-2xl leading-none tracking-wide"
-      aria-label="(T)ExMex Cantina"
-    >
-      <span>
-        <span class="text-exmex-turquoise">(T)</span><span class="text-exmex-maroon [[data-theme=dark]_&]:text-exmex-orange">ExMex</span>
-      </span>
-      <span class="text-base-content/45 max-sm:hidden">Cantina</span>
-    </div>
+    <span id="wordmark" class="font-display text-2xl leading-none tracking-wide">
+      <span class="text-exmex-turquoise">(T)</span><span class="text-exmex-maroon [[data-theme=dark]_&]:text-exmex-orange">ExMex</span>
+    </span>
     """
   end
 
