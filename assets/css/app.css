@@ -9,6 +9,25 @@
 /* Required for Tailwind to automatically pick up changes in colocated CSS files in dev */
 @source "../../_build/dev/phoenix-colocated/cantina/*/";
 
+/* ExMex brand: the colors of exmexconf.com, and Oswald for the wordmark. */
+@font-face {
+  font-family: "Oswald";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/oswald-700-latin.woff2") format("woff2");
+}
+
+@theme {
+  --font-display: "Oswald", ui-sans-serif, system-ui, sans-serif;
+  --color-exmex-cream: #f0e7db;
+  --color-exmex-maroon: #6b2e30;
+  --color-exmex-orange: #ea8553;
+  --color-exmex-peach: #edb697;
+  --color-exmex-teal: #003d4c;
+  --color-exmex-turquoise: #0f9596;
+}
+
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */
 @plugin "../vendor/heroicons";

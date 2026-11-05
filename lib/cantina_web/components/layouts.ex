@@ -44,9 +44,11 @@ defmodule CantinaWeb.Layouts do
         "mx-auto flex items-center justify-between gap-4 px-4 py-3 sm:px-6",
         if(@wide, do: "max-w-none", else: "max-w-3xl")
       ]}>
-        <div class="flex items-baseline gap-3">
-          <span class="text-xl font-black tracking-tight text-amber-500">🌮 Cantina</span>
-          <span :if={@title} class="text-lg font-semibold">{@title}</span>
+        <div class="flex items-center gap-4">
+          <.wordmark />
+          <span :if={@title} class="border-l border-base-300 pl-4 text-lg font-semibold">
+            {@title}
+          </span>
         </div>
         <div class="flex items-center gap-3">
           {render_slot(@actions)}
@@ -62,6 +64,20 @@ defmodule CantinaWeb.Layouts do
     </main>
 
     <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc "The (T)ExMex Cantina wordmark: Tex-Mex food at ExMex."
+  def wordmark(assigns) do
+    ~H"""
+    <div id="wordmark" class="flex flex-col leading-none" aria-label="(T)ExMex Cantina">
+      <span class="font-display text-2xl tracking-wide">
+        <span class="text-exmex-turquoise">(T)</span><span class="text-exmex-maroon [[data-theme=dark]_&]:text-exmex-orange">ExMex</span>
+      </span>
+      <span class="mt-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-base-content/60">
+        Cantina
+      </span>
+    </div>
     """
   end
 
