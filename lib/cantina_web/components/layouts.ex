@@ -46,13 +46,16 @@ defmodule CantinaWeb.Layouts do
       ]}>
         <div class="flex items-center gap-4">
           <.wordmark />
-          <span :if={@title} class="border-l border-base-300 pl-4 text-lg font-semibold">
+          <span
+            :if={@title}
+            class="whitespace-nowrap border-l border-base-300 pl-4 text-lg font-semibold"
+          >
             {@title}
           </span>
         </div>
         <div class="flex items-center gap-3">
           {render_slot(@actions)}
-          <.theme_toggle />
+          <div class="max-sm:hidden"><.theme_toggle /></div>
         </div>
       </div>
     </header>
@@ -70,13 +73,15 @@ defmodule CantinaWeb.Layouts do
   @doc "The (T)ExMex Cantina wordmark: Tex-Mex food at ExMex."
   def wordmark(assigns) do
     ~H"""
-    <div id="wordmark" class="flex flex-col leading-none" aria-label="(T)ExMex Cantina">
-      <span class="font-display text-2xl tracking-wide">
+    <div
+      id="wordmark"
+      class="flex items-baseline gap-1.5 font-display text-2xl leading-none tracking-wide"
+      aria-label="(T)ExMex Cantina"
+    >
+      <span>
         <span class="text-exmex-turquoise">(T)</span><span class="text-exmex-maroon [[data-theme=dark]_&]:text-exmex-orange">ExMex</span>
       </span>
-      <span class="mt-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-base-content/60">
-        Cantina
-      </span>
+      <span class="text-base-content/45 max-sm:hidden">Cantina</span>
     </div>
     """
   end
