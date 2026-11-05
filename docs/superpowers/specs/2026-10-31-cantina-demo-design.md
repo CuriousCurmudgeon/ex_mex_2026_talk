@@ -28,7 +28,6 @@ The demo shows these features of VerifiedPubSub:
 | Expo | The expediter. This person collects the tickets of an order and sends the order out complete. | `/expo` |
 | The pass | The counter where finished plates wait for the expediter | the expo screen |
 | Run | Carry the food to the table | `:served` |
-| 86 | The kitchen has no more of an item | `:eighty_sixed`, added live |
 | KDS | Kitchen display system: the screen at a station | `/kitchen/:station` |
 
 ## Scope
@@ -62,8 +61,9 @@ cook bumps a ticket  ──▶ :station  :bumped     (broadcast_from!, the other
 each ticket is ready ──▶ :expo     :order_complete
                      └─▶ :table    :ready
 expo runs the order  ──▶ :table    :served
+                     └─▶ :expo     :served          (added on stage)
 
-manager              ──▶ :menu     :special_added   (on stage: :eighty_sixed, :back_on)
+manager              ──▶ :menu     :special_added
 ```
 
 ## Manifest
@@ -137,7 +137,7 @@ defmodule Cantina.Topics do
 end
 ```
 
-`:eighty_sixed` and `:back_on` stay out of the first build. The talk adds them live. See [Demo beats](#demo-beats).
+`:served` on the `:expo` topic stays out of the first build. The talk adds it live. See [Demo beats](#demo-beats).
 
 ## Structs
 
@@ -152,8 +152,6 @@ end
 | `:grill` | Carne asada tacos, al pastor tacos, chicken fajitas, cheese quesadilla |
 | `:fryer` | Chips and guac, chips and queso, flautas, churros |
 | `:bar` | Margarita, horchata, Mexican Coke, agua fresca |
-
-On stage, chips and guac is the item that the kitchen 86es.
 
 ## Modules
 
@@ -217,16 +215,17 @@ LiveView receives `presence_diff` in a plain `handle_info/2`. A slide shows that
 
 - Each order is a card that lists its stations. A station gets a check mark when its ticket is ready.
 - A complete order shows a "Run it" button.
+- After the live change, a served order leaves each expo screen. Before it, the card leaves only the screen that ran it.
 
 ### Board, `/board`
 
 - The counts from Presence, as "37 diners seated · 4 cooks on the line".
 - The count of open tickets at each station, and the average of `cook_seconds`.
-- A feed of the last orders.
+- A feed of the last orders. A ready order shows "at the pass", and a served order shows "served". Before the live
+  change, the board does not hear `:served`, so a run order keeps "at the pass" until the board reloads.
 - The manager controls:
   - Add a special.
   - Start or stop the rush.
-  - After the live change, an 86 button for each item.
 
 ## Demo beats
 
@@ -235,15 +234,16 @@ LiveView receives `presence_diff` in a plain `handle_info/2`. A slide shows that
 3. Typo in a topic: `broadcast!(:stations, ...)` in `Cantina.Kitchen` does not compile.
 4. Typo in a param: `%{station_id: :grill}` does not compile.
 5. Typo in a payload field: `cook_secs` does not compile.
-6. Add `:eighty_sixed` with an `:item_id` field to `:menu`. Three LiveViews then do not compile:
-   - The diner screen handles it and greys out the item.
-   - The station screen handles it and flags each open ticket with the item.
-   - The board handles it and shows a "🥑 86'd" banner.
-7. Add `:back_on`. The board ignores it with `ignore_broadcast`, to show that each ignore is a choice in the code.
-8. Run `mix verified_pubsub.topics menu eighty_sixed` to show each call site.
-9. Open the generated `## Topics` docs of `Cantina.Topics`.
+6. Fix a bug: the board shows a run order "at the pass", and a second expo screen keeps its card. Add `:served` with
+   an `:order_id` field to `:expo`. Two LiveViews then do not compile, one at a time:
+   - The board handles it and marks the order served.
+   - The expo screen handles it and drops the card.
+7. Run `mix verified_pubsub.topics expo served`. It shows two handlers and `(no broadcast)`. Then add
+   `broadcast!(:expo, :served, ...)` to `Orders.serve/1`, and run the task again.
+8. Open the generated `## Topics` docs of `Cantina.Topics`.
 
-Keep the change for each live beat on its own git branch. When the live typing goes wrong, check out the branch.
+Keep the change for each live beat on its own git branch, named `beat/NN-name` with the number of the beat, as
+`beat/06-expo-served`. When the live typing goes wrong, check out the branch.
 
 ## Risks
 
