@@ -9,7 +9,6 @@ defmodule Cantina.Application do
   def start(_type, _args) do
     children = [
       CantinaWeb.Telemetry,
-      {DNSCluster, query: Application.get_env(:cantina, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Cantina.PubSub},
       Cantina.Presence,
       Cantina.Menu,
