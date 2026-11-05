@@ -123,6 +123,20 @@ defmodule CantinaWeb.ScreensTest do
       assert view |> element("#feed-#{order.id}") |> render() =~ "3× Al pastor tacos"
     end
 
+    test "shows a ready order at the pass, and a served order as served", %{conn: conn} do
+      {:ok, order} = Orders.place(table_id(), %{"mexican-coke" => 1})
+      {:ok, _} = Kitchen.auto_bump(ticket_for(:bar, order.id).id)
+      _ = :sys.get_state(Orders)
+      status = "#feed-status-#{order.id}"
+
+      {:ok, view, _} = live(conn, ~p"/board")
+      assert view |> element(status) |> render() =~ "at the pass"
+
+      {:ok, _} = Orders.serve(order.id)
+      {:ok, view, _} = live(conn, ~p"/board")
+      assert view |> element(status) |> render() =~ "served"
+    end
+
     test "adds a special", %{conn: conn} do
       {:ok, view, _} = live(conn, ~p"/board")
 

@@ -90,7 +90,7 @@ defmodule CantinaWeb.BoardLive do
               <span class="flex-1 truncate text-sm text-base-content/70">
                 {Enum.map_join(entry.line_items, ", ", &"#{&1.quantity}× #{&1.name}")}
               </span>
-              <span :if={entry.complete?} class="text-sm font-bold text-emerald-500">at the pass</span>
+              <.feed_status id={"feed-status-#{entry.id}"} status={entry.status} />
             </li>
           </ul>
         </section>
@@ -122,6 +122,25 @@ defmodule CantinaWeb.BoardLive do
         </section>
       </div>
     </Layouts.app>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :status, :atom, required: true
+
+  defp feed_status(%{status: :placed} = assigns), do: ~H""
+
+  defp feed_status(assigns) do
+    ~H"""
+    <span
+      id={@id}
+      class={[
+        "text-sm font-bold",
+        if(@status == :ready, do: "text-emerald-500", else: "text-base-content/50")
+      ]}
+    >
+      {if @status == :ready, do: "at the pass", else: "served"}
+    </span>
     """
   end
 
@@ -173,10 +192,7 @@ defmodule CantinaWeb.BoardLive do
   ignore_broadcast :expo, :ticket_ready
 
   handle_broadcast :expo, :order_complete, %{order_id: id}, socket do
-    {:noreply,
-     update(socket, :feed, fn feed ->
-       Enum.map(feed, &if(&1.id == id, do: %{&1 | complete?: true}, else: &1))
-     end)}
+    {:noreply, set_feed_status(socket, id, :ready)}
   end
 
   handle_broadcast :menu, :special_added, %{item: item} = payload, socket do
@@ -212,7 +228,7 @@ defmodule CantinaWeb.BoardLive do
         id: ticket.order_id,
         table_id: ticket.table_id,
         line_items: ticket.line_items,
-        complete?: false
+        status: :placed
       }
 
       Enum.take([entry | feed], @feed_size)
@@ -224,8 +240,14 @@ defmodule CantinaWeb.BoardLive do
       id: order.id,
       table_id: order.table_id,
       line_items: order.line_items,
-      complete?: order.status != :placed
+      status: order.status
     }
+  end
+
+  defp set_feed_status(socket, order_id, status) do
+    update(socket, :feed, fn feed ->
+      Enum.map(feed, &if(&1.id == order_id, do: %{&1 | status: status}, else: &1))
+    end)
   end
 
   defp average(%{bumped: 0}), do: "—"
