@@ -47,7 +47,7 @@ defmodule Cantina.Menu do
   def add_special(attrs, note \\ nil) do
     with {:ok, item} <- build_special(attrs) do
       Agent.update(__MODULE__, &(&1 ++ [item]))
-      :ok = Phoenix.PubSub.broadcast(Cantina.PubSub, "menu", {:special, item, note})
+      :ok = Phoenix.PubSub.broadcast(Cantina.PubSub, "menu", {:special_added, item, note})
       {:ok, item}
     end
   end

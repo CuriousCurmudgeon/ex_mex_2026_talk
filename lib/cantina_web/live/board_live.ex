@@ -17,7 +17,7 @@ defmodule CantinaWeb.BoardLive do
       Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
 
       for station <- Menu.stations(),
-          do: Phoenix.PubSub.subscribe(Cantina.PubSub, "station:" <> to_string(station))
+          do: Phoenix.PubSub.subscribe(Cantina.PubSub, "stations:" <> to_string(station))
 
       Phoenix.PubSub.subscribe(Cantina.PubSub, "presence:diners")
       Phoenix.PubSub.subscribe(Cantina.PubSub, "presence:cooks")
@@ -169,14 +169,14 @@ defmodule CantinaWeb.BoardLive do
   end
 
   @impl true
-  def handle_info({:new_ticket, ticket}, socket) do
+  def handle_info({:fired, ticket}, socket) do
     {:noreply,
      socket
      |> update_stats(ticket.station, &%{&1 | open: &1.open + 1})
      |> update(:feed, &add_to_feed(&1, ticket))}
   end
 
-  def handle_info(%{event: "bumped", station: station, secs: seconds}, socket) do
+  def handle_info(%{event: "bumped", station: station, cook_seconds: seconds}, socket) do
     {:noreply,
      update_stats(socket, station, fn stats ->
        %{
@@ -188,11 +188,11 @@ defmodule CantinaWeb.BoardLive do
      end)}
   end
 
-  def handle_info({:order_complete, %{id: id}}, socket) do
+  def handle_info({:order_complete, %{order_id: id}}, socket) do
     {:noreply, set_feed_status(socket, id, :ready)}
   end
 
-  def handle_info({:special, item, note}, socket) do
+  def handle_info({:special_added, item, note}, socket) do
     {:noreply, update(socket, :specials, &[%{item: item, note: note} | &1])}
   end
 

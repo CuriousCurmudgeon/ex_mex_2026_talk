@@ -105,7 +105,7 @@ defmodule Cantina.Kitchen do
 
         Phoenix.PubSub.broadcast(
           Cantina.PubSub,
-          "station:#{station}",
+          "stations:#{station}",
           {:claimed, ticket_id, cook_name}
         )
 
@@ -128,8 +128,8 @@ defmodule Cantina.Kitchen do
           Phoenix.PubSub.broadcast_from!(
             Cantina.PubSub,
             pid,
-            "station:" <> Atom.to_string(station),
-            %{event: "bumped", station: station, ticket_id: ticket_id, secs: cook_seconds}
+            "stations:" <> Atom.to_string(station),
+            %{event: "bumped", station: station, ticket_id: ticket_id, cook_seconds: cook_seconds}
           )
 
           Phoenix.PubSub.broadcast(Cantina.PubSub, "expo", {:ticket_ready, ticket})
@@ -164,7 +164,7 @@ defmodule Cantina.Kitchen do
     tickets =
       Enum.reduce(released, state.tickets, fn {ticket_id, _pid}, tickets ->
         %Ticket{station: station} = ticket = Map.fetch!(tickets, ticket_id)
-        Phoenix.PubSub.broadcast!(Cantina.PubSub, "station:#{station}", {:released, ticket_id})
+        Phoenix.PubSub.broadcast!(Cantina.PubSub, "stations:#{station}", {:released, ticket_id})
         Map.put(tickets, ticket_id, %{ticket | claimed_by: nil})
       end)
 
@@ -182,11 +182,11 @@ defmodule Cantina.Kitchen do
       {:ok, %Ticket{station: station} = ticket} ->
         {cook_seconds, state} = close(state, ticket)
 
-        Phoenix.PubSub.broadcast(Cantina.PubSub, "station:#{ticket.station}", %{
+        Phoenix.PubSub.broadcast(Cantina.PubSub, "stations:#{ticket.station}", %{
           event: "bumped",
           station: station,
           ticket_id: ticket_id,
-          secs: cook_seconds
+          cook_seconds: cook_seconds
         })
 
         Phoenix.PubSub.broadcast!(Cantina.PubSub, "expo", {:ticket_ready, ticket})

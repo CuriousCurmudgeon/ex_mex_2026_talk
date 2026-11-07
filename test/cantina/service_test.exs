@@ -9,15 +9,15 @@ defmodule Cantina.ServiceTest do
   # Places an order with one grill item and one bar item. Returns the order and its tickets.
   defp place_order(table_id) do
     for station <- ["grill", "bar"],
-        do: Phoenix.PubSub.subscribe(Cantina.PubSub, "station:" <> station)
+        do: Phoenix.PubSub.subscribe(Cantina.PubSub, "stations:" <> station)
 
-    Phoenix.PubSub.subscribe(Cantina.PubSub, "table:#{table_id}")
+    Phoenix.PubSub.subscribe(Cantina.PubSub, "tables:#{table_id}")
 
     {:ok, order} = Orders.place(table_id, %{"carne-asada-tacos" => 2, "horchata" => "1"})
 
-    assert_receive {:new_ticket, %{station: :grill} = grill}
-    assert_receive {:new_ticket, %{station: :bar} = bar}
-    assert_receive {:order_placed, order_id, _line_items}
+    assert_receive {:fired, %{station: :grill} = grill}
+    assert_receive {:fired, %{station: :bar} = bar}
+    assert_receive {:placed, order_id, _line_items}
     assert order_id == order.id
 
     {order, grill, bar}
@@ -98,10 +98,10 @@ defmodule Cantina.ServiceTest do
     # The kitchen bumps the bar ticket itself, so each screen drops the card.
     bar_id = bar.id
     assert {:ok, _} = Kitchen.auto_bump(bar_id)
-    assert_receive %{event: "bumped", ticket_id: ^bar_id, secs: s}
+    assert_receive %{event: "bumped", ticket_id: ^bar_id, cook_seconds: s}
     assert is_integer(s)
 
-    assert_receive {:order_complete, %{id: ^order_id, table: ^table_id}}
+    assert_receive {:order_complete, %{order_id: ^order_id, table_id: ^table_id}}
     assert_receive {:ready, ^order_id}
 
     assert {:ok, %{status: :served}} = Orders.serve(order_id)
@@ -118,7 +118,7 @@ defmodule Cantina.ServiceTest do
                "Tonight only"
              )
 
-    assert_receive {:special, ^item, "Tonight only"}
+    assert_receive {:special_added, ^item, "Tonight only"}
     assert item in Menu.list_items()
 
     assert {:error, :invalid} =

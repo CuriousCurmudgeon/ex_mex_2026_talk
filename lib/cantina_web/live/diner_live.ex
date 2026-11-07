@@ -9,7 +9,7 @@ defmodule CantinaWeb.DinerLive do
   @impl true
   def mount(%{"table_id" => table_id}, _session, socket) do
     if connected?(socket) do
-      :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, "table:" <> table_id)
+      :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, "tables:" <> table_id)
       :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
       {:ok, _ref} = Presence.track_diner(self(), table_id)
     end
@@ -149,7 +149,7 @@ defmodule CantinaWeb.DinerLive do
   end
 
   @impl true
-  def handle_info({:order_placed, id, line_items}, socket) do
+  def handle_info({:placed, id, line_items}, socket) do
     order = %{id: id, line_items: line_items, status: :placed}
     {:noreply, update(socket, :orders, &upsert(&1, order))}
   end
@@ -158,7 +158,7 @@ defmodule CantinaWeb.DinerLive do
     {:noreply, set_status(socket, id, status)}
   end
 
-  def handle_info({:special, item, _}, socket) do
+  def handle_info({:special_added, item, _}, socket) do
     {:noreply, update(socket, :menu, &(&1 ++ [item]))}
   end
 

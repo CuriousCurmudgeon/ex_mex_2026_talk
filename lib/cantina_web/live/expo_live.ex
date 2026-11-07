@@ -90,7 +90,7 @@ defmodule CantinaWeb.ExpoLive do
      update_order(socket, ticket.order_id, &put_in(&1.stations[ticket.station], :ready))}
   end
 
-  def handle_info({:order_complete, %{id: id}}, socket) do
+  def handle_info({:order_complete, %{order_id: id}}, socket) do
     {:noreply, update_order(socket, id, &%{&1 | status: :ready})}
   end
 
