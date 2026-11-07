@@ -8,16 +8,14 @@ defmodule Cantina.ServiceTest do
 
   # Places an order with one grill item and one bar item. Returns the order and its tickets.
   defp place_order(table_id) do
-    for station <- ["grill", "bar"],
-        do: Phoenix.PubSub.subscribe(Cantina.PubSub, "station:" <> station)
-
-    Phoenix.PubSub.subscribe(Cantina.PubSub, "table:#{table_id}")
+    for station <- [:grill, :bar], do: :ok = Cantina.PubSub.subscribe_station(station)
+    :ok = Cantina.PubSub.subscribe_table(table_id)
 
     {:ok, order} = Orders.place(table_id, %{"carne-asada-tacos" => 2, "horchata" => "1"})
 
-    assert_receive {:new_ticket, %{station: :grill} = grill}
-    assert_receive {:new_ticket, %{station: :bar} = bar}
-    assert_receive {:order_placed, order_id, _line_items}
+    assert_receive {:ticket_fired, %{ticket: %{station: :grill} = grill}}
+    assert_receive {:ticket_fired, %{ticket: %{station: :bar} = bar}}
+    assert_receive {:order_placed, %{order_id: order_id}}
     assert order_id == order.id
 
     {order, grill, bar}
@@ -53,7 +51,7 @@ defmodule Cantina.ServiceTest do
     {_order, grill, _bar} = place_order(table_id())
 
     assert {:ok, %Ticket{claimed_by: "Ana"}} = Kitchen.claim(:grill, grill.id, "Ana")
-    assert_receive {:claimed, id, "Ana"}
+    assert_receive {:ticket_claimed, %{ticket_id: id, cook_name: "Ana"}}
     assert id == grill.id
 
     assert {:error, :taken} = Kitchen.claim(:grill, grill.id, "Ben")
@@ -74,7 +72,7 @@ defmodule Cantina.ServiceTest do
 
     Process.exit(pid, :kill)
 
-    assert_receive {:released, ^grill_id}
+    assert_receive {:ticket_released, %{ticket_id: ^grill_id}}
 
     assert %Ticket{claimed_by: nil} =
              Enum.find(Kitchen.list_tickets(:grill), &(&1.id == grill_id))
@@ -82,35 +80,35 @@ defmodule Cantina.ServiceTest do
 
   test "bump skips the screen of the cook, and the order completes when each ticket is ready" do
     table_id = table_id()
-    :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, "expo")
+    :ok = Cantina.PubSub.subscribe_expo()
     {order, grill, bar} = place_order(table_id)
     order_id = order.id
 
     {:ok, _} = Kitchen.claim(:grill, grill.id, "Ana")
     assert {:ok, _} = Kitchen.bump(:grill, grill.id, "Ana")
 
-    # broadcast_from! skips the bumping process.
+    # The bump skips the process of the cook.
     grill_id = grill.id
-    refute_receive %{event: "bumped", ticket_id: ^grill_id}, 50
-    assert_receive {:ticket_ready, %{id: ^grill_id}}
+    refute_receive {:ticket_bumped, %{ticket_id: ^grill_id}}, 50
+    assert_receive {:ticket_ready, %{ticket: %{id: ^grill_id}}}
     assert {:error, :not_ready} = Orders.serve(order_id)
 
     # The kitchen bumps the bar ticket itself, so each screen drops the card.
     bar_id = bar.id
     assert {:ok, _} = Kitchen.auto_bump(bar_id)
-    assert_receive %{event: "bumped", ticket_id: ^bar_id, secs: s}
+    assert_receive {:ticket_bumped, %{ticket_id: ^bar_id, cook_seconds: s}}
     assert is_integer(s)
 
-    assert_receive {:order_complete, %{id: ^order_id, table: ^table_id}}
-    assert_receive {:ready, ^order_id}
+    assert_receive {:order_complete, %{order_id: ^order_id, table_id: ^table_id}}
+    assert_receive {:order_ready, %{order_id: ^order_id}}
 
     assert {:ok, %{status: :served}} = Orders.serve(order_id)
-    assert_receive {:served, ^order_id}
+    assert_receive {:order_served, %{order_id: ^order_id}}
     refute Enum.any?(Orders.list_open_orders(), &(&1.id == order_id))
   end
 
   test "add_special/2 adds an item and broadcasts it" do
-    Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
+    :ok = Cantina.PubSub.subscribe_menu()
 
     assert {:ok, item} =
              Menu.add_special(
@@ -118,7 +116,7 @@ defmodule Cantina.ServiceTest do
                "Tonight only"
              )
 
-    assert_receive {:special, ^item, "Tonight only"}
+    assert_receive {:special_added, %{item: ^item, note: "Tonight only"}}
     assert item in Menu.list_items()
 
     assert {:error, :invalid} =

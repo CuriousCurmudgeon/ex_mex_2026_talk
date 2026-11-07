@@ -12,7 +12,7 @@ defmodule CantinaWeb.HomeLive do
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      Phoenix.PubSub.subscribe(Cantina.PubSub, "presence:cooks")
+      :ok = Cantina.PubSub.subscribe_cooks()
     end
 
     {:ok,

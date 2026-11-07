@@ -89,19 +89,10 @@ defmodule Cantina.Orders do
 
         for ticket <- tickets do
           :ok = Kitchen.open(ticket)
-
-          Phoenix.PubSub.broadcast(
-            Cantina.PubSub,
-            "station:#{ticket.station}",
-            {:new_ticket, ticket}
-          )
+          Cantina.PubSub.broadcast_ticket_fired(ticket)
         end
 
-        Phoenix.PubSub.broadcast!(
-          Cantina.PubSub,
-          "table:" <> table_id,
-          {:order_placed, order_id, line_items}
-        )
+        Cantina.PubSub.broadcast_order_placed(table_id, order_id, line_items)
 
         {:reply, {:ok, order}, put_in(state.orders[order_id], order)}
     end
@@ -111,7 +102,7 @@ defmodule Cantina.Orders do
     case Map.fetch(state.orders, order_id) do
       {:ok, %{status: :ready} = order} ->
         order = %{order | status: :served}
-        Phoenix.PubSub.broadcast(Cantina.PubSub, "table:#{order.table_id}", {:served, order_id})
+        Cantina.PubSub.broadcast_order_served(order.table_id, order_id)
         {:reply, {:ok, order}, put_in(state.orders[order_id], order)}
 
       {:ok, _order} ->
@@ -169,13 +160,8 @@ defmodule Cantina.Orders do
 
   defp maybe_complete(order) do
     if Enum.all?(order.stations, fn {_station, status} -> status == :ready end) do
-      Phoenix.PubSub.broadcast(
-        Cantina.PubSub,
-        "expo",
-        {:order_complete, %{id: order.id, table: order.table_id}}
-      )
-
-      Phoenix.PubSub.broadcast(Cantina.PubSub, "table:#{order.table_id}", {:ready, order.id})
+      Cantina.PubSub.broadcast_order_complete(order.id, order.table_id)
+      Cantina.PubSub.broadcast_order_ready(order.table_id, order.id)
       %{order | status: :ready}
     else
       order

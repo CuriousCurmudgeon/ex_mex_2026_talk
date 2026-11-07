@@ -13,14 +13,11 @@ defmodule CantinaWeb.BoardLive do
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      Phoenix.PubSub.subscribe(Cantina.PubSub, "expo")
-      Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
-
-      for station <- Menu.stations(),
-          do: Phoenix.PubSub.subscribe(Cantina.PubSub, "station:" <> to_string(station))
-
-      Phoenix.PubSub.subscribe(Cantina.PubSub, "presence:diners")
-      Phoenix.PubSub.subscribe(Cantina.PubSub, "presence:cooks")
+      :ok = Cantina.PubSub.subscribe_expo()
+      :ok = Cantina.PubSub.subscribe_menu()
+      for station <- Menu.stations(), do: :ok = Cantina.PubSub.subscribe_station(station)
+      :ok = Cantina.PubSub.subscribe_diners()
+      :ok = Cantina.PubSub.subscribe_cooks()
     end
 
     {:ok,
@@ -169,14 +166,14 @@ defmodule CantinaWeb.BoardLive do
   end
 
   @impl true
-  def handle_info({:new_ticket, ticket}, socket) do
+  def handle_info({:ticket_fired, %{ticket: ticket}}, socket) do
     {:noreply,
      socket
      |> update_stats(ticket.station, &%{&1 | open: &1.open + 1})
      |> update(:feed, &add_to_feed(&1, ticket))}
   end
 
-  def handle_info(%{event: "bumped", station: station, secs: seconds}, socket) do
+  def handle_info({:ticket_bumped, %{station: station, cook_seconds: seconds}}, socket) do
     {:noreply,
      update_stats(socket, station, fn stats ->
        %{
@@ -188,11 +185,11 @@ defmodule CantinaWeb.BoardLive do
      end)}
   end
 
-  def handle_info({:order_complete, %{id: id}}, socket) do
+  def handle_info({:order_complete, %{order_id: id}}, socket) do
     {:noreply, set_feed_status(socket, id, :ready)}
   end
 
-  def handle_info({:special, item, note}, socket) do
+  def handle_info({:special_added, %{item: item, note: note}}, socket) do
     {:noreply, update(socket, :specials, &[%{item: item, note: note} | &1])}
   end
 
@@ -200,7 +197,10 @@ defmodule CantinaWeb.BoardLive do
     {:noreply, assign_presence(socket)}
   end
 
-  def handle_info(_, socket), do: {:noreply, socket}
+  # The board shows counts, not claims, and the feed waits for the whole order.
+  def handle_info({event, _payload}, socket)
+      when event in [:ticket_claimed, :ticket_released, :ticket_ready],
+      do: {:noreply, socket}
 
   defp assign_presence(socket) do
     socket

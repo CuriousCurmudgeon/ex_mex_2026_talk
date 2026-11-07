@@ -9,8 +9,8 @@ defmodule CantinaWeb.DinerLive do
   @impl true
   def mount(%{"table_id" => table_id}, _session, socket) do
     if connected?(socket) do
-      :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, "table:" <> table_id)
-      :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
+      :ok = Cantina.PubSub.subscribe_table(table_id)
+      :ok = Cantina.PubSub.subscribe_menu()
       {:ok, _ref} = Presence.track_diner(self(), table_id)
     end
 
@@ -149,20 +149,19 @@ defmodule CantinaWeb.DinerLive do
   end
 
   @impl true
-  def handle_info({:order_placed, id, line_items}, socket) do
+  def handle_info({:order_placed, %{order_id: id, line_items: line_items}}, socket) do
     order = %{id: id, line_items: line_items, status: :placed}
     {:noreply, update(socket, :orders, &upsert(&1, order))}
   end
 
-  def handle_info({status, id}, socket) when status in [:ready, :served] do
-    {:noreply, set_status(socket, id, status)}
-  end
+  def handle_info({:order_ready, %{order_id: id}}, socket),
+    do: {:noreply, set_status(socket, id, :ready)}
 
-  def handle_info({:special, item, _}, socket) do
-    {:noreply, update(socket, :menu, &(&1 ++ [item]))}
-  end
+  def handle_info({:order_served, %{order_id: id}}, socket),
+    do: {:noreply, set_status(socket, id, :served)}
 
-  def handle_info(_msg, socket), do: {:noreply, socket}
+  def handle_info({:special_added, %{item: item}}, socket),
+    do: {:noreply, update(socket, :menu, &(&1 ++ [item]))}
 
   defp order_view(order), do: Map.take(order, [:id, :line_items, :status])
 

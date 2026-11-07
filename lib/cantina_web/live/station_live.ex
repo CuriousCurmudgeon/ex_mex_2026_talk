@@ -26,8 +26,8 @@ defmodule CantinaWeb.StationLive do
        |> push_navigate(to: ~p"/")}
     else
       if connected?(socket) do
-        Phoenix.PubSub.subscribe(Cantina.PubSub, "station:#{station}")
-        Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
+        :ok = Cantina.PubSub.subscribe_station(station)
+        :ok = Cantina.PubSub.subscribe_menu()
         {:ok, _ref} = Presence.track_cook(self(), station, name)
         :timer.send_interval(1_000, :tick)
       end
@@ -146,20 +146,19 @@ defmodule CantinaWeb.StationLive do
   @impl true
   def handle_info(:tick, socket), do: {:noreply, assign(socket, :now, DateTime.utc_now())}
 
-  def handle_info({:new_ticket, ticket}, socket), do: {:noreply, put_ticket(socket, ticket)}
+  def handle_info({:ticket_fired, %{ticket: ticket}}, socket),
+    do: {:noreply, put_ticket(socket, ticket)}
 
-  def handle_info({:claimed, id, name}, socket) do
-    {:noreply, update_ticket(socket, id, &%{&1 | claimed_by: name})}
-  end
+  def handle_info({:ticket_claimed, %{ticket_id: id, cook_name: name}}, socket),
+    do: {:noreply, update_ticket(socket, id, &%{&1 | claimed_by: name})}
 
-  def handle_info({:released, id}, socket),
+  def handle_info({:ticket_released, %{ticket_id: id}}, socket),
     do: {:noreply, update_ticket(socket, id, &%{&1 | claimed_by: nil})}
 
-  def handle_info(%{event: "bumped", ticket_id: id}, socket) do
-    {:noreply, drop_ticket(socket, id)}
-  end
+  def handle_info({:ticket_bumped, %{ticket_id: id}}, socket),
+    do: {:noreply, drop_ticket(socket, id)}
 
-  def handle_info({:special, item, _note}, socket) do
+  def handle_info({:special_added, %{item: item}}, socket) do
     if item.station == socket.assigns.station do
       {:noreply, put_flash(socket, :info, "New special: #{item.name}")}
     else

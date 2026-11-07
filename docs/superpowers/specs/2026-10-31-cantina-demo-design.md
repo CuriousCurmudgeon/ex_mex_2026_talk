@@ -5,10 +5,11 @@ Cantina is the demo app for the VerifiedPubSub talk at ExMex. It runs a Tex-Mex 
 audience orders food from their phones. Volunteer cooks work the kitchen screens. The projector shows the whole
 kitchen.
 
-> **On the `messy-pubsub` branch:** the app has no VerifiedPubSub and no manifest. Each call site calls
-> `Phoenix.PubSub.broadcast`/`subscribe` itself, with its own topic string and its own message shape. The behavior
-> is the same as on `main`. The branch is the "before" picture: pub/sub that is hard to follow and that the compiler
-> does not check.
+> **On the `organized-pubsub` branch:** the app has no VerifiedPubSub. `Cantina.PubSub` holds each topic and each
+> message, organized by topic: a `subscribe_*` function for each topic and a `broadcast_*` function for each message.
+> Each message is `{event, payload_map}`. The behavior is the same as on `main`. The branch is the middle picture:
+> plain `Phoenix.PubSub`, but organized. It branches from `messy-pubsub`, the "before" picture, where each call site
+> calls `Phoenix.PubSub` itself.
 
 The demo shows these features of VerifiedPubSub:
 
