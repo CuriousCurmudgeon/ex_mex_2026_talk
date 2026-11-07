@@ -4,14 +4,13 @@ defmodule CantinaWeb.ExpoLive do
   """
 
   use CantinaWeb, :live_view
-  use VerifiedPubSub.Subscriber, manifest: Cantina.Topics
 
   alias Cantina.Orders
   alias CantinaWeb.Format
 
   @impl true
   def mount(_params, _session, socket) do
-    if connected?(socket), do: :ok = subscribe(:expo)
+    if connected?(socket), do: Phoenix.PubSub.subscribe(Cantina.PubSub, "expo")
 
     {:ok,
      socket
@@ -74,7 +73,8 @@ defmodule CantinaWeb.ExpoLive do
     end
   end
 
-  handle_broadcast :expo, :ticket_ready, %{ticket: ticket}, socket do
+  @impl true
+  def handle_info({:ticket_ready, ticket}, socket) do
     socket =
       if Enum.any?(socket.assigns.orders, &(&1.id == ticket.order_id)) do
         socket
@@ -90,7 +90,7 @@ defmodule CantinaWeb.ExpoLive do
      update_order(socket, ticket.order_id, &put_in(&1.stations[ticket.station], :ready))}
   end
 
-  handle_broadcast :expo, :order_complete, %{order_id: id}, socket do
+  def handle_info({:order_complete, %{id: id}}, socket) do
     {:noreply, update_order(socket, id, &%{&1 | status: :ready})}
   end
 

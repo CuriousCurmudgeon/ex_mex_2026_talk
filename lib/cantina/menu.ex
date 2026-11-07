@@ -2,7 +2,6 @@ defmodule Cantina.Menu do
   @moduledoc "Holds the menu in an `Agent`. Adds a special during service."
 
   use Agent
-  use VerifiedPubSub, manifest: Cantina.Topics
 
   alias Cantina.MenuItem
 
@@ -48,7 +47,7 @@ defmodule Cantina.Menu do
   def add_special(attrs, note \\ nil) do
     with {:ok, item} <- build_special(attrs) do
       Agent.update(__MODULE__, &(&1 ++ [item]))
-      broadcast!(:menu, :special_added, %{item: item, note: note})
+      :ok = Phoenix.PubSub.broadcast(Cantina.PubSub, "menu", {:special, item, note})
       {:ok, item}
     end
   end

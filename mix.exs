@@ -66,8 +66,7 @@ defmodule Cantina.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
-      {:bandit, "~> 1.5"},
-      {:verified_pubsub, "~> 0.3.0"}
+      {:bandit, "~> 1.5"}
     ]
   end
 

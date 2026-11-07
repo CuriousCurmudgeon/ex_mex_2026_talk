@@ -2,16 +2,13 @@ defmodule Cantina.Presence do
   @moduledoc """
   Tracks diners and cooks.
 
-  Presence uses plain `Phoenix.PubSub` topics, next to the manifest of `Cantina.Topics`.
+  Presence broadcasts `presence_diff` on `"presence:diners"` and `"presence:cooks"`.
   """
 
   use Phoenix.Presence, otp_app: :cantina, pubsub_server: Cantina.PubSub
 
   @diners "presence:diners"
   @cooks "presence:cooks"
-
-  def diners_topic, do: @diners
-  def cooks_topic, do: @cooks
 
   def track_diner(pid, table_id), do: track(pid, @diners, table_id, %{table_id: table_id})
 

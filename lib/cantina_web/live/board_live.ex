@@ -1,11 +1,9 @@
 defmodule CantinaWeb.BoardLive do
   @moduledoc """
-  The projector. It collects events from many topics into one screen: the expo, the menu,
-  each station, and both Presence topics.
+  The projector. It collects events from many topics into one screen.
   """
 
   use CantinaWeb, :live_view
-  use VerifiedPubSub.Subscriber, manifest: Cantina.Topics
 
   alias Cantina.{Kitchen, Menu, Orders, Presence, Rush}
   alias CantinaWeb.Format
@@ -15,12 +13,14 @@ defmodule CantinaWeb.BoardLive do
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      :ok = subscribe(:expo)
-      :ok = subscribe(:menu)
-      for station <- Menu.stations(), do: :ok = subscribe(:station, %{station: station})
-      # Plain Phoenix.PubSub topics, next to the manifest.
-      :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, Presence.diners_topic())
-      :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, Presence.cooks_topic())
+      Phoenix.PubSub.subscribe(Cantina.PubSub, "expo")
+      Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
+
+      for station <- Menu.stations(),
+          do: Phoenix.PubSub.subscribe(Cantina.PubSub, "station:" <> to_string(station))
+
+      Phoenix.PubSub.subscribe(Cantina.PubSub, "presence:diners")
+      Phoenix.PubSub.subscribe(Cantina.PubSub, "presence:cooks")
     end
 
     {:ok,
@@ -168,14 +168,15 @@ defmodule CantinaWeb.BoardLive do
     end
   end
 
-  handle_broadcast :station, %{station: station}, :fired, %{ticket: ticket}, socket do
+  @impl true
+  def handle_info({:new_ticket, ticket}, socket) do
     {:noreply,
      socket
-     |> update_stats(station, &%{&1 | open: &1.open + 1})
+     |> update_stats(ticket.station, &%{&1 | open: &1.open + 1})
      |> update(:feed, &add_to_feed(&1, ticket))}
   end
 
-  handle_broadcast :station, %{station: station}, :bumped, %{cook_seconds: seconds}, socket do
+  def handle_info(%{event: "bumped", station: station, secs: seconds}, socket) do
     {:noreply,
      update_stats(socket, station, fn stats ->
        %{
@@ -187,23 +188,19 @@ defmodule CantinaWeb.BoardLive do
      end)}
   end
 
-  ignore_broadcast :station, [:claimed, :released]
-
-  ignore_broadcast :expo, :ticket_ready
-
-  handle_broadcast :expo, :order_complete, %{order_id: id}, socket do
+  def handle_info({:order_complete, %{id: id}}, socket) do
     {:noreply, set_feed_status(socket, id, :ready)}
   end
 
-  handle_broadcast :menu, :special_added, %{item: item} = payload, socket do
-    special = %{item: item, note: Map.get(payload, :note)}
-    {:noreply, update(socket, :specials, &[special | &1])}
+  def handle_info({:special, item, note}, socket) do
+    {:noreply, update(socket, :specials, &[%{item: item, note: note} | &1])}
   end
 
-  @impl true
   def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff"}, socket) do
     {:noreply, assign_presence(socket)}
   end
+
+  def handle_info(_, socket), do: {:noreply, socket}
 
   defp assign_presence(socket) do
     socket

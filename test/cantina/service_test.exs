@@ -1,33 +1,23 @@
 defmodule Cantina.ServiceTest do
   # Orders, Kitchen, and Menu are named processes, so these tests run one at a time.
   use ExUnit.Case, async: false
-  use VerifiedPubSub, manifest: Cantina.Topics
 
   alias Cantina.{Kitchen, Menu, Orders, Ticket}
-  alias VerifiedPubSub.Message
 
   defp table_id, do: "test-#{System.unique_integer([:positive])}"
 
   # Places an order with one grill item and one bar item. Returns the order and its tickets.
   defp place_order(table_id) do
-    for station <- [:grill, :bar], do: :ok = subscribe(:station, %{station: station})
-    :ok = subscribe(:table, %{table_id: table_id})
+    for station <- ["grill", "bar"],
+        do: Phoenix.PubSub.subscribe(Cantina.PubSub, "station:" <> station)
+
+    Phoenix.PubSub.subscribe(Cantina.PubSub, "table:#{table_id}")
 
     {:ok, order} = Orders.place(table_id, %{"carne-asada-tacos" => 2, "horchata" => "1"})
 
-    assert_receive %Message{
-      topic: :station,
-      event: :fired,
-      payload: %{ticket: %{station: :grill} = grill}
-    }
-
-    assert_receive %Message{
-      topic: :station,
-      event: :fired,
-      payload: %{ticket: %{station: :bar} = bar}
-    }
-
-    assert_receive %Message{topic: :table, event: :placed, payload: %{order_id: order_id}}
+    assert_receive {:new_ticket, %{station: :grill} = grill}
+    assert_receive {:new_ticket, %{station: :bar} = bar}
+    assert_receive {:order_placed, order_id, _line_items}
     assert order_id == order.id
 
     {order, grill, bar}
@@ -63,7 +53,7 @@ defmodule Cantina.ServiceTest do
     {_order, grill, _bar} = place_order(table_id())
 
     assert {:ok, %Ticket{claimed_by: "Ana"}} = Kitchen.claim(:grill, grill.id, "Ana")
-    assert_receive %Message{event: :claimed, payload: %{ticket_id: id, cook_name: "Ana"}}
+    assert_receive {:claimed, id, "Ana"}
     assert id == grill.id
 
     assert {:error, :taken} = Kitchen.claim(:grill, grill.id, "Ben")
@@ -84,7 +74,7 @@ defmodule Cantina.ServiceTest do
 
     Process.exit(pid, :kill)
 
-    assert_receive %Message{event: :released, payload: %{ticket_id: ^grill_id}}
+    assert_receive {:released, ^grill_id}
 
     assert %Ticket{claimed_by: nil} =
              Enum.find(Kitchen.list_tickets(:grill), &(&1.id == grill_id))
@@ -92,7 +82,7 @@ defmodule Cantina.ServiceTest do
 
   test "bump skips the screen of the cook, and the order completes when each ticket is ready" do
     table_id = table_id()
-    :ok = subscribe(:expo)
+    :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, "expo")
     {order, grill, bar} = place_order(table_id)
     order_id = order.id
 
@@ -101,30 +91,26 @@ defmodule Cantina.ServiceTest do
 
     # broadcast_from! skips the bumping process.
     grill_id = grill.id
-    refute_receive %Message{event: :bumped, payload: %{ticket_id: ^grill_id}}, 50
-    assert_receive %Message{event: :ticket_ready, payload: %{ticket: %{id: ^grill_id}}}
+    refute_receive %{event: "bumped", ticket_id: ^grill_id}, 50
+    assert_receive {:ticket_ready, %{id: ^grill_id}}
     assert {:error, :not_ready} = Orders.serve(order_id)
 
     # The kitchen bumps the bar ticket itself, so each screen drops the card.
     bar_id = bar.id
     assert {:ok, _} = Kitchen.auto_bump(bar_id)
-    assert_receive %Message{event: :bumped, payload: %{ticket_id: ^bar_id, cook_seconds: s}}
+    assert_receive %{event: "bumped", ticket_id: ^bar_id, secs: s}
     assert is_integer(s)
 
-    assert_receive %Message{
-      event: :order_complete,
-      payload: %{order_id: ^order_id, table_id: ^table_id}
-    }
-
-    assert_receive %Message{topic: :table, event: :ready, payload: %{order_id: ^order_id}}
+    assert_receive {:order_complete, %{id: ^order_id, table: ^table_id}}
+    assert_receive {:ready, ^order_id}
 
     assert {:ok, %{status: :served}} = Orders.serve(order_id)
-    assert_receive %Message{topic: :table, event: :served, payload: %{order_id: ^order_id}}
+    assert_receive {:served, ^order_id}
     refute Enum.any?(Orders.list_open_orders(), &(&1.id == order_id))
   end
 
   test "add_special/2 adds an item and broadcasts it" do
-    :ok = subscribe(:menu)
+    Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
 
     assert {:ok, item} =
              Menu.add_special(
@@ -132,7 +118,7 @@ defmodule Cantina.ServiceTest do
                "Tonight only"
              )
 
-    assert_receive %Message{event: :special_added, payload: %{item: ^item, note: "Tonight only"}}
+    assert_receive {:special, ^item, "Tonight only"}
     assert item in Menu.list_items()
 
     assert {:error, :invalid} =

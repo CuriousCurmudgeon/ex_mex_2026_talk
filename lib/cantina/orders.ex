@@ -5,7 +5,6 @@ defmodule Cantina.Orders do
   """
 
   use GenServer
-  use VerifiedPubSub, manifest: Cantina.Topics
 
   alias Cantina.{Kitchen, LineItem, Menu, Ticket}
 
@@ -90,13 +89,19 @@ defmodule Cantina.Orders do
 
         for ticket <- tickets do
           :ok = Kitchen.open(ticket)
-          broadcast!(:station, %{station: ticket.station}, :fired, %{ticket: ticket})
+
+          Phoenix.PubSub.broadcast(
+            Cantina.PubSub,
+            "station:#{ticket.station}",
+            {:new_ticket, ticket}
+          )
         end
 
-        broadcast!(:table, %{table_id: table_id}, :placed, %{
-          order_id: order_id,
-          line_items: line_items
-        })
+        Phoenix.PubSub.broadcast!(
+          Cantina.PubSub,
+          "table:" <> table_id,
+          {:order_placed, order_id, line_items}
+        )
 
         {:reply, {:ok, order}, put_in(state.orders[order_id], order)}
     end
@@ -106,7 +111,7 @@ defmodule Cantina.Orders do
     case Map.fetch(state.orders, order_id) do
       {:ok, %{status: :ready} = order} ->
         order = %{order | status: :served}
-        broadcast!(:table, %{table_id: order.table_id}, :served, %{order_id: order_id})
+        Phoenix.PubSub.broadcast(Cantina.PubSub, "table:#{order.table_id}", {:served, order_id})
         {:reply, {:ok, order}, put_in(state.orders[order_id], order)}
 
       {:ok, _order} ->
@@ -164,8 +169,13 @@ defmodule Cantina.Orders do
 
   defp maybe_complete(order) do
     if Enum.all?(order.stations, fn {_station, status} -> status == :ready end) do
-      broadcast!(:expo, :order_complete, %{order_id: order.id, table_id: order.table_id})
-      broadcast!(:table, %{table_id: order.table_id}, :ready, %{order_id: order.id})
+      Phoenix.PubSub.broadcast(
+        Cantina.PubSub,
+        "expo",
+        {:order_complete, %{id: order.id, table: order.table_id}}
+      )
+
+      Phoenix.PubSub.broadcast(Cantina.PubSub, "table:#{order.table_id}", {:ready, order.id})
       %{order | status: :ready}
     else
       order

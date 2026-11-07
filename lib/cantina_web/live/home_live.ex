@@ -12,8 +12,7 @@ defmodule CantinaWeb.HomeLive do
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      # A plain Phoenix.PubSub topic, next to the manifest.
-      :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, Presence.cooks_topic())
+      Phoenix.PubSub.subscribe(Cantina.PubSub, "presence:cooks")
     end
 
     {:ok,

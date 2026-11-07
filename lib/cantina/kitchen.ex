@@ -9,7 +9,6 @@ defmodule Cantina.Kitchen do
   """
 
   use GenServer
-  use VerifiedPubSub, manifest: Cantina.Topics
 
   alias Cantina.Ticket
 
@@ -104,10 +103,11 @@ defmodule Cantina.Kitchen do
           |> put_in([:holders, ticket_id], pid)
           |> monitor(pid)
 
-        broadcast!(:station, %{station: station}, :claimed, %{
-          ticket_id: ticket_id,
-          cook_name: cook_name
-        })
+        Phoenix.PubSub.broadcast(
+          Cantina.PubSub,
+          "station:#{station}",
+          {:claimed, ticket_id, cook_name}
+        )
 
         {:reply, {:ok, ticket}, state}
 
@@ -125,12 +125,14 @@ defmodule Cantina.Kitchen do
         if state.holders[ticket_id] == pid do
           {cook_seconds, state} = close(state, ticket)
 
-          broadcast_from!(pid, :station, %{station: station}, :bumped, %{
-            ticket_id: ticket_id,
-            cook_seconds: cook_seconds
-          })
+          Phoenix.PubSub.broadcast_from!(
+            Cantina.PubSub,
+            pid,
+            "station:" <> Atom.to_string(station),
+            %{event: "bumped", station: station, ticket_id: ticket_id, secs: cook_seconds}
+          )
 
-          broadcast!(:expo, :ticket_ready, %{ticket: ticket})
+          Phoenix.PubSub.broadcast(Cantina.PubSub, "expo", {:ticket_ready, ticket})
           Cantina.Orders.ticket_ready(ticket)
           {:reply, {:ok, ticket}, state}
         else
@@ -162,7 +164,7 @@ defmodule Cantina.Kitchen do
     tickets =
       Enum.reduce(released, state.tickets, fn {ticket_id, _pid}, tickets ->
         %Ticket{station: station} = ticket = Map.fetch!(tickets, ticket_id)
-        broadcast!(:station, %{station: station}, :released, %{ticket_id: ticket_id})
+        Phoenix.PubSub.broadcast!(Cantina.PubSub, "station:#{station}", {:released, ticket_id})
         Map.put(tickets, ticket_id, %{ticket | claimed_by: nil})
       end)
 
@@ -180,12 +182,14 @@ defmodule Cantina.Kitchen do
       {:ok, %Ticket{station: station} = ticket} ->
         {cook_seconds, state} = close(state, ticket)
 
-        broadcast!(:station, %{station: station}, :bumped, %{
+        Phoenix.PubSub.broadcast(Cantina.PubSub, "station:#{ticket.station}", %{
+          event: "bumped",
+          station: station,
           ticket_id: ticket_id,
-          cook_seconds: cook_seconds
+          secs: cook_seconds
         })
 
-        broadcast!(:expo, :ticket_ready, %{ticket: ticket})
+        Phoenix.PubSub.broadcast!(Cantina.PubSub, "expo", {:ticket_ready, ticket})
         Cantina.Orders.ticket_ready(ticket)
         {{:ok, ticket}, state}
 

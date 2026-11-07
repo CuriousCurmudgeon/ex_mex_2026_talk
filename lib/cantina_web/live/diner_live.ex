@@ -2,7 +2,6 @@ defmodule CantinaWeb.DinerLive do
   @moduledoc "A diner orders food from a phone and follows each order."
 
   use CantinaWeb, :live_view
-  use VerifiedPubSub.Subscriber, manifest: Cantina.Topics
 
   alias Cantina.{Menu, Orders, Presence}
   alias CantinaWeb.Format
@@ -10,8 +9,8 @@ defmodule CantinaWeb.DinerLive do
   @impl true
   def mount(%{"table_id" => table_id}, _session, socket) do
     if connected?(socket) do
-      :ok = subscribe(:table, %{table_id: table_id})
-      :ok = subscribe(:menu)
+      :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, "table:" <> table_id)
+      :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
       {:ok, _ref} = Presence.track_diner(self(), table_id)
     end
 
@@ -149,22 +148,21 @@ defmodule CantinaWeb.DinerLive do
     end
   end
 
-  handle_broadcast :table, :placed, %{order_id: id, line_items: line_items}, socket do
+  @impl true
+  def handle_info({:order_placed, id, line_items}, socket) do
     order = %{id: id, line_items: line_items, status: :placed}
     {:noreply, update(socket, :orders, &upsert(&1, order))}
   end
 
-  handle_broadcast :table, :ready, %{order_id: id}, socket do
-    {:noreply, set_status(socket, id, :ready)}
+  def handle_info({status, id}, socket) when status in [:ready, :served] do
+    {:noreply, set_status(socket, id, status)}
   end
 
-  handle_broadcast :table, :served, %{order_id: id}, socket do
-    {:noreply, set_status(socket, id, :served)}
-  end
-
-  handle_broadcast :menu, :special_added, %{item: item}, socket do
+  def handle_info({:special, item, _}, socket) do
     {:noreply, update(socket, :menu, &(&1 ++ [item]))}
   end
+
+  def handle_info(_msg, socket), do: {:noreply, socket}
 
   defp order_view(order), do: Map.take(order, [:id, :line_items, :status])
 
