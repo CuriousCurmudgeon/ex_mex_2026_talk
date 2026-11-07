@@ -146,16 +146,16 @@ defmodule CantinaWeb.StationLive do
   @impl true
   def handle_info(:tick, socket), do: {:noreply, assign(socket, :now, DateTime.utc_now())}
 
-  def handle_info({:ticket_fired, %{ticket: ticket}}, socket),
+  def handle_info({:fired, %{ticket: ticket}}, socket),
     do: {:noreply, put_ticket(socket, ticket)}
 
-  def handle_info({:ticket_claimed, %{ticket_id: id, cook_name: name}}, socket),
+  def handle_info({:claimed, %{ticket_id: id, cook_name: name}}, socket),
     do: {:noreply, update_ticket(socket, id, &%{&1 | claimed_by: name})}
 
-  def handle_info({:ticket_released, %{ticket_id: id}}, socket),
+  def handle_info({:released, %{ticket_id: id}}, socket),
     do: {:noreply, update_ticket(socket, id, &%{&1 | claimed_by: nil})}
 
-  def handle_info({:ticket_bumped, %{ticket_id: id}}, socket),
+  def handle_info({:bumped, %{ticket_id: id}}, socket),
     do: {:noreply, drop_ticket(socket, id)}
 
   def handle_info({:special_added, %{item: item}}, socket) do

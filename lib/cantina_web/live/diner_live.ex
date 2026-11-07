@@ -149,15 +149,15 @@ defmodule CantinaWeb.DinerLive do
   end
 
   @impl true
-  def handle_info({:order_placed, %{order_id: id, line_items: line_items}}, socket) do
+  def handle_info({:placed, %{order_id: id, line_items: line_items}}, socket) do
     order = %{id: id, line_items: line_items, status: :placed}
     {:noreply, update(socket, :orders, &upsert(&1, order))}
   end
 
-  def handle_info({:order_ready, %{order_id: id}}, socket),
+  def handle_info({:ready, %{order_id: id}}, socket),
     do: {:noreply, set_status(socket, id, :ready)}
 
-  def handle_info({:order_served, %{order_id: id}}, socket),
+  def handle_info({:served, %{order_id: id}}, socket),
     do: {:noreply, set_status(socket, id, :served)}
 
   def handle_info({:special_added, %{item: item}}, socket),

@@ -13,9 +13,9 @@ defmodule Cantina.ServiceTest do
 
     {:ok, order} = Orders.place(table_id, %{"carne-asada-tacos" => 2, "horchata" => "1"})
 
-    assert_receive {:ticket_fired, %{ticket: %{station: :grill} = grill}}
-    assert_receive {:ticket_fired, %{ticket: %{station: :bar} = bar}}
-    assert_receive {:order_placed, %{order_id: order_id}}
+    assert_receive {:fired, %{ticket: %{station: :grill} = grill}}
+    assert_receive {:fired, %{ticket: %{station: :bar} = bar}}
+    assert_receive {:placed, %{order_id: order_id}}
     assert order_id == order.id
 
     {order, grill, bar}
@@ -51,7 +51,7 @@ defmodule Cantina.ServiceTest do
     {_order, grill, _bar} = place_order(table_id())
 
     assert {:ok, %Ticket{claimed_by: "Ana"}} = Kitchen.claim(:grill, grill.id, "Ana")
-    assert_receive {:ticket_claimed, %{ticket_id: id, cook_name: "Ana"}}
+    assert_receive {:claimed, %{ticket_id: id, cook_name: "Ana"}}
     assert id == grill.id
 
     assert {:error, :taken} = Kitchen.claim(:grill, grill.id, "Ben")
@@ -72,7 +72,7 @@ defmodule Cantina.ServiceTest do
 
     Process.exit(pid, :kill)
 
-    assert_receive {:ticket_released, %{ticket_id: ^grill_id}}
+    assert_receive {:released, %{ticket_id: ^grill_id}}
 
     assert %Ticket{claimed_by: nil} =
              Enum.find(Kitchen.list_tickets(:grill), &(&1.id == grill_id))
@@ -89,21 +89,21 @@ defmodule Cantina.ServiceTest do
 
     # The bump skips the process of the cook.
     grill_id = grill.id
-    refute_receive {:ticket_bumped, %{ticket_id: ^grill_id}}, 50
+    refute_receive {:bumped, %{ticket_id: ^grill_id}}, 50
     assert_receive {:ticket_ready, %{ticket: %{id: ^grill_id}}}
     assert {:error, :not_ready} = Orders.serve(order_id)
 
     # The kitchen bumps the bar ticket itself, so each screen drops the card.
     bar_id = bar.id
     assert {:ok, _} = Kitchen.auto_bump(bar_id)
-    assert_receive {:ticket_bumped, %{ticket_id: ^bar_id, cook_seconds: s}}
+    assert_receive {:bumped, %{ticket_id: ^bar_id, cook_seconds: s}}
     assert is_integer(s)
 
     assert_receive {:order_complete, %{order_id: ^order_id, table_id: ^table_id}}
-    assert_receive {:order_ready, %{order_id: ^order_id}}
+    assert_receive {:ready, %{order_id: ^order_id}}
 
     assert {:ok, %{status: :served}} = Orders.serve(order_id)
-    assert_receive {:order_served, %{order_id: ^order_id}}
+    assert_receive {:served, %{order_id: ^order_id}}
     refute Enum.any?(Orders.list_open_orders(), &(&1.id == order_id))
   end
 

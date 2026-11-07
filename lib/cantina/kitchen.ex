@@ -103,7 +103,7 @@ defmodule Cantina.Kitchen do
           |> put_in([:holders, ticket_id], pid)
           |> monitor(pid)
 
-        Cantina.PubSub.broadcast_ticket_claimed(station, ticket_id, cook_name)
+        Cantina.PubSub.broadcast_claimed(station, ticket_id, cook_name)
 
         {:reply, {:ok, ticket}, state}
 
@@ -121,7 +121,7 @@ defmodule Cantina.Kitchen do
         if state.holders[ticket_id] == pid do
           {cook_seconds, state} = close(state, ticket)
 
-          Cantina.PubSub.broadcast_ticket_bumped(pid, station, ticket_id, cook_seconds)
+          Cantina.PubSub.broadcast_bumped(pid, station, ticket_id, cook_seconds)
           Cantina.PubSub.broadcast_ticket_ready(ticket)
           Cantina.Orders.ticket_ready(ticket)
           {:reply, {:ok, ticket}, state}
@@ -154,7 +154,7 @@ defmodule Cantina.Kitchen do
     tickets =
       Enum.reduce(released, state.tickets, fn {ticket_id, _pid}, tickets ->
         %Ticket{station: station} = ticket = Map.fetch!(tickets, ticket_id)
-        Cantina.PubSub.broadcast_ticket_released(station, ticket_id)
+        Cantina.PubSub.broadcast_released(station, ticket_id)
         Map.put(tickets, ticket_id, %{ticket | claimed_by: nil})
       end)
 
@@ -172,7 +172,7 @@ defmodule Cantina.Kitchen do
       {:ok, %Ticket{station: station} = ticket} ->
         {cook_seconds, state} = close(state, ticket)
 
-        Cantina.PubSub.broadcast_ticket_bumped(station, ticket_id, cook_seconds)
+        Cantina.PubSub.broadcast_bumped(station, ticket_id, cook_seconds)
         Cantina.PubSub.broadcast_ticket_ready(ticket)
         Cantina.Orders.ticket_ready(ticket)
         {{:ok, ticket}, state}

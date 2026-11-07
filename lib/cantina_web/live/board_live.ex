@@ -166,14 +166,14 @@ defmodule CantinaWeb.BoardLive do
   end
 
   @impl true
-  def handle_info({:ticket_fired, %{ticket: ticket}}, socket) do
+  def handle_info({:fired, %{ticket: ticket}}, socket) do
     {:noreply,
      socket
      |> update_stats(ticket.station, &%{&1 | open: &1.open + 1})
      |> update(:feed, &add_to_feed(&1, ticket))}
   end
 
-  def handle_info({:ticket_bumped, %{station: station, cook_seconds: seconds}}, socket) do
+  def handle_info({:bumped, %{station: station, cook_seconds: seconds}}, socket) do
     {:noreply,
      update_stats(socket, station, fn stats ->
        %{
@@ -199,7 +199,7 @@ defmodule CantinaWeb.BoardLive do
 
   # The board shows counts, not claims, and the feed waits for the whole order.
   def handle_info({event, _payload}, socket)
-      when event in [:ticket_claimed, :ticket_released, :ticket_ready],
+      when event in [:claimed, :released, :ticket_ready],
       do: {:noreply, socket}
 
   defp assign_presence(socket) do

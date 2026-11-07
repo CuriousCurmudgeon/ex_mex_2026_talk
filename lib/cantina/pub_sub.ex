@@ -12,8 +12,8 @@ defmodule Cantina.PubSub do
 
   | Topic | Subscribe | Messages |
   |---|---|---|
-  | `"table:<table_id>"` | `subscribe_table/1` | `:order_placed`, `:order_ready`, `:order_served` |
-  | `"station:<station>"` | `subscribe_station/1` | `:ticket_fired`, `:ticket_claimed`, `:ticket_released`, `:ticket_bumped` |
+  | `"tables:<table_id>"` | `subscribe_table/1` | `:placed`, `:ready`, `:served` |
+  | `"stations:<station>"` | `subscribe_station/1` | `:fired`, `:claimed`, `:released`, `:bumped` |
   | `"expo"` | `subscribe_expo/0` | `:ticket_ready`, `:order_complete` |
   | `"menu"` | `subscribe_menu/0` | `:special_added` |
   | `"presence:diners"` | `subscribe_diners/0` | `Phoenix.Presence` diffs |
@@ -27,75 +27,75 @@ defmodule Cantina.PubSub do
   ## Table: the status of the orders of one table.
 
   @type table_message ::
-          {:order_placed, %{order_id: String.t(), line_items: [LineItem.t()]}}
-          | {:order_ready, %{order_id: String.t()}}
-          | {:order_served, %{order_id: String.t()}}
+          {:placed, %{order_id: String.t(), line_items: [LineItem.t()]}}
+          | {:ready, %{order_id: String.t()}}
+          | {:served, %{order_id: String.t()}}
 
   def subscribe_table(table_id), do: subscribe(table_topic(table_id))
 
   @doc "A diner placed an order."
-  def broadcast_order_placed(table_id, order_id, line_items),
+  def broadcast_placed(table_id, order_id, line_items),
     do:
       broadcast(
         table_topic(table_id),
-        {:order_placed, %{order_id: order_id, line_items: line_items}}
+        {:placed, %{order_id: order_id, line_items: line_items}}
       )
 
   @doc "The kitchen finished each ticket of the order."
-  def broadcast_order_ready(table_id, order_id),
-    do: broadcast(table_topic(table_id), {:order_ready, %{order_id: order_id}})
+  def broadcast_ready(table_id, order_id),
+    do: broadcast(table_topic(table_id), {:ready, %{order_id: order_id}})
 
   @doc "The expediter ran the order to the table."
-  def broadcast_order_served(table_id, order_id),
-    do: broadcast(table_topic(table_id), {:order_served, %{order_id: order_id}})
+  def broadcast_served(table_id, order_id),
+    do: broadcast(table_topic(table_id), {:served, %{order_id: order_id}})
 
-  defp table_topic(table_id), do: "table:#{table_id}"
+  defp table_topic(table_id), do: "tables:#{table_id}"
 
   ## Station: the tickets of one kitchen station.
 
   @type station_message ::
-          {:ticket_fired, %{ticket: Ticket.t()}}
-          | {:ticket_claimed, %{station: atom(), ticket_id: String.t(), cook_name: String.t()}}
-          | {:ticket_released, %{station: atom(), ticket_id: String.t()}}
-          | {:ticket_bumped,
-             %{station: atom(), ticket_id: String.t(), cook_seconds: non_neg_integer()}}
+          {:fired, %{ticket: Ticket.t()}}
+          | {:claimed, %{ticket_id: String.t(), cook_name: String.t()}}
+          | {:released, %{ticket_id: String.t()}}
+          | {:bumped, %{station: atom(), ticket_id: String.t(), cook_seconds: non_neg_integer()}}
 
   def subscribe_station(station), do: subscribe(station_topic(station))
 
   @doc "A new ticket reached its station."
-  def broadcast_ticket_fired(%Ticket{} = ticket),
-    do: broadcast(station_topic(ticket.station), {:ticket_fired, %{ticket: ticket}})
+  def broadcast_fired(%Ticket{} = ticket),
+    do: broadcast(station_topic(ticket.station), {:fired, %{ticket: ticket}})
 
   @doc "A cook took a ticket."
-  def broadcast_ticket_claimed(station, ticket_id, cook_name),
+  def broadcast_claimed(station, ticket_id, cook_name),
     do:
       broadcast(
         station_topic(station),
-        {:ticket_claimed, %{station: station, ticket_id: ticket_id, cook_name: cook_name}}
+        {:claimed, %{ticket_id: ticket_id, cook_name: cook_name}}
       )
 
   @doc "The cook of the ticket left the station."
-  def broadcast_ticket_released(station, ticket_id),
+  def broadcast_released(station, ticket_id),
     do:
       broadcast(
         station_topic(station),
-        {:ticket_released, %{station: station, ticket_id: ticket_id}}
+        {:released, %{ticket_id: ticket_id}}
       )
 
   @doc """
-  A ticket is done. With a `from` pid, the process of the cook that bumped it does not
+  A ticket is done. The payload carries the station, unlike the other station messages,
+  because the board subscribes to each station and needs to know which one. With a `from` pid, the process of the cook that bumped it does not
   receive the message: that screen drops the card itself.
   """
-  def broadcast_ticket_bumped(from \\ nil, station, ticket_id, cook_seconds) do
+  def broadcast_bumped(from \\ nil, station, ticket_id, cook_seconds) do
     message =
-      {:ticket_bumped, %{station: station, ticket_id: ticket_id, cook_seconds: cook_seconds}}
+      {:bumped, %{station: station, ticket_id: ticket_id, cook_seconds: cook_seconds}}
 
     if from,
       do: broadcast_from(from, station_topic(station), message),
       else: broadcast(station_topic(station), message)
   end
 
-  defp station_topic(station) when is_atom(station), do: "station:#{station}"
+  defp station_topic(station) when is_atom(station), do: "stations:#{station}"
 
   ## Expo: tickets that are ready to plate and run.
 
