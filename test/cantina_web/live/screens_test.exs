@@ -76,25 +76,38 @@ defmodule CantinaWeb.ScreensTest do
       assert render_async_until(ben, "Claim")
     end
 
-    test "an unknown station goes back to the picker", %{conn: conn} do
-      assert {:error, {:live_redirect, %{to: "/kitchen"}}} =
+    test "an unknown station goes back to the home page", %{conn: conn} do
+      assert {:error, {:live_redirect, %{to: "/"}}} =
                live(conn, ~p"/kitchen/oven?name=Ana")
     end
   end
 
-  describe "station picker" do
+  describe "home" do
+    test "seats a diner at a random table", %{conn: conn} do
+      {:ok, view, _} = live(conn, ~p"/")
+      view |> element("#role-table") |> render_click()
+      {path, _flash} = assert_redirect(view)
+      assert path =~ ~r"^/t/\d+$"
+    end
+
     test "sends the cook to a station with a name", %{conn: conn} do
-      {:ok, view, _} = live(conn, ~p"/kitchen")
+      {:ok, view, _} = live(conn, ~p"/")
       view |> form("#cook-form", %{"name" => "Rosa"}) |> render_change()
       view |> element("#station-bar") |> render_click()
       assert_redirect(view, ~p"/kitchen/bar?name=Rosa")
     end
 
     test "gives a name to a cook that leaves it blank", %{conn: conn} do
-      {:ok, view, _} = live(conn, ~p"/kitchen")
+      {:ok, view, _} = live(conn, ~p"/")
       view |> element("#station-grill") |> render_click()
       {path, _flash} = assert_redirect(view)
       assert path =~ ~r"^/kitchen/grill\?name=Cook\+\d+$"
+    end
+
+    test "sends a guest to expo", %{conn: conn} do
+      {:ok, view, _} = live(conn, ~p"/")
+      view |> element("#role-expo") |> render_click()
+      assert_redirect(view, ~p"/expo")
     end
   end
 

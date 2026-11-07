@@ -17,10 +17,9 @@ defmodule CantinaWeb.Router do
   scope "/", CantinaWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", HomeLive
 
     live "/t/:table_id", DinerLive
-    live "/kitchen", StationPickerLive
     live "/kitchen/:station", StationLive
     live "/expo", ExpoLive
     live "/board", BoardLive

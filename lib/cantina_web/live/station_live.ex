@@ -15,7 +15,7 @@ defmodule CantinaWeb.StationLive do
          name when is_binary(name) and name != "" <- params["name"] do
       mount_station(socket, station, String.slice(name, 0, 24))
     else
-      _ -> {:ok, push_navigate(socket, to: ~p"/kitchen")}
+      _ -> {:ok, push_navigate(socket, to: ~p"/")}
     end
   end
 
@@ -23,8 +23,8 @@ defmodule CantinaWeb.StationLive do
     if connected?(socket) and Presence.cook_counts()[station] >= Presence.max_cooks() do
       {:ok,
        socket
-       |> put_flash(:error, "The #{Format.station_name(station)} is full. Pick another station.")
-       |> push_navigate(to: ~p"/kitchen")}
+       |> put_flash(:error, "The #{Format.station_name(station)} is full. Pick another job.")
+       |> push_navigate(to: ~p"/")}
     else
       if connected?(socket) do
         :ok = subscribe(:station, %{station: station})
@@ -51,7 +51,7 @@ defmodule CantinaWeb.StationLive do
         <span class="text-sm text-base-content/70">
           Cooking as <span class="font-bold text-base-content">{@cook_name}</span>
         </span>
-        <.link navigate={~p"/kitchen"} class="text-sm underline">Leave</.link>
+        <.link navigate={~p"/"} class="text-sm underline">Leave</.link>
       </:actions>
 
       <p :if={@tickets == []} class="py-24 text-center text-2xl text-base-content/40">

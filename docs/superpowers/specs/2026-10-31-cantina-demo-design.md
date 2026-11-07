@@ -186,9 +186,8 @@ LiveView receives `presence_diff` in a plain `handle_info/2`. A slide shows that
 
 | Route | Who | Subscribes to | Calls |
 |---|---|---|---|
-| `/` | A diner | — | Assigns a random table and redirects to `/t/:table_id`. |
+| `/` | Each guest, from the QR code | `"presence:cooks"` | Picks a job: a table, a station, or expo. |
 | `/t/:table_id` | A diner | `:table` for the table, `:menu` | `Orders.place/2` |
-| `/kitchen` | A volunteer cook | `"presence:cooks"` | Picks a station and a cook name. |
 | `/kitchen/:station` | A cook | `:station` for the station, `:menu` | `Kitchen.claim/3`, `Kitchen.bump/3` |
 | `/expo` | The expediter | `:expo` | `Orders.serve/1` |
 | `/board` | The projector | `:expo`, `:menu`, `:station` for each station, both Presence topics | `Menu.add_special/2`, `Rush.start/0`, `Rush.stop/0` |
@@ -199,11 +198,13 @@ LiveView receives `presence_diff` in a plain `handle_info/2`. A slide shows that
 - The menu lists each item with a quantity stepper and an order button.
 - Below the menu, each order shows its status: placed, then ready, then served.
 
-### Station picker, `/kitchen`
+### Home, `/`
 
-- Each station shows its count of cooks from Presence.
+- "Grab a table" sends the guest to a random table, `/t/:table_id`.
+- "Work the kitchen" lists the stations. Each station shows its count of cooks from Presence.
 - A station shows "kitchen full" when it has the maximum count of cooks. The default maximum is 3.
 - The cook enters a name, or the app gives one, as "Cook 3".
+- "Run expo" sends the guest to `/expo`. Any number of guests can run expo.
 
 ### Station, `/kitchen/:station`
 
@@ -229,8 +230,8 @@ LiveView receives `presence_diff` in a plain `handle_info/2`. A slide shows that
 
 ## Demo beats
 
-1. Show the QR code for `/`. The audience orders, and the board fills.
-2. Ask for volunteers at `/kitchen`. Show the claim lock and the bump on the projector.
+1. Show the QR code for `/`. The audience picks a job. Diners order, and the board fills.
+2. Ask for volunteers to pick a station or expo on the same page. Show the claim lock and the bump on the projector.
 3. Typo in a topic: `broadcast!(:stations, ...)` in `Cantina.Kitchen` does not compile.
 4. Typo in a param: `%{station_id: :grill}` does not compile.
 5. Typo in a payload field: `cook_secs` does not compile.
