@@ -5,7 +5,7 @@ defmodule Cantina.Orders do
   """
 
   use GenServer
-  use VerifiedPubSub, manifest: Cantina.Topics
+  use VerifiedPubSub, manifest: Cantina.Manifest
 
   alias Cantina.{Kitchen, LineItem, Menu, Ticket}
 

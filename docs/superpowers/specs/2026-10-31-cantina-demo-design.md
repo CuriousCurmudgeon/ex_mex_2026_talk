@@ -69,7 +69,7 @@ manager              ──▶ :menu     :special_added
 ## Manifest
 
 ```elixir
-defmodule Cantina.Topics do
+defmodule Cantina.Manifest do
   use VerifiedPubSub.Manifest, pubsub: Cantina.PubSub
 
   topic :table, ["tables", :table_id] do
@@ -157,7 +157,7 @@ end
 
 | Module | Kind | Job |
 |---|---|---|
-| `Cantina.Topics` | Manifest | Declares each topic and event. |
+| `Cantina.Manifest` | Manifest | Declares each topic and event. |
 | `Cantina.Menu` | Context and `Agent` | Holds the menu. Adds a special. |
 | `Cantina.Orders` | Context and `GenServer` | Places an order. Splits it into tickets. Tracks when each order is complete. Marks an order served. |
 | `Cantina.Kitchen` | Context and `GenServer` | Holds the open tickets of each station. Claims, releases, and bumps a ticket. Monitors the process of each cook. |
@@ -241,7 +241,7 @@ LiveView receives `presence_diff` in a plain `handle_info/2`. A slide shows that
    - The expo screen handles it and drops the card.
 7. Run `mix verified_pubsub.topics expo served`. It shows two handlers and `(no broadcast)`. Then add
    `broadcast!(:expo, :served, ...)` to `Orders.serve/1`, and run the task again.
-8. Open the generated `## Topics` docs of `Cantina.Topics`.
+8. Open the generated `## Topics` docs of `Cantina.Manifest`.
 
 Keep the change for each live beat on its own git branch, named `beat/NN-name` with the number of the beat, as
 `beat/06-expo-served`. When the live typing goes wrong, check out the branch.

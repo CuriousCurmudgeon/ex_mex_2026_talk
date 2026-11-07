@@ -2,7 +2,7 @@ defmodule CantinaWeb.DinerLive do
   @moduledoc "A diner orders food from a phone and follows each order."
 
   use CantinaWeb, :live_view
-  use VerifiedPubSub.Subscriber, manifest: Cantina.Topics
+  use VerifiedPubSub.Subscriber, manifest: Cantina.Manifest
 
   alias Cantina.{Menu, Orders, Presence}
   alias CantinaWeb.Format

@@ -1,7 +1,7 @@
 defmodule Cantina.ServiceTest do
   # Orders, Kitchen, and Menu are named processes, so these tests run one at a time.
   use ExUnit.Case, async: false
-  use VerifiedPubSub, manifest: Cantina.Topics
+  use VerifiedPubSub, manifest: Cantina.Manifest
 
   alias Cantina.{Kitchen, Menu, Orders, Ticket}
   alias VerifiedPubSub.Message

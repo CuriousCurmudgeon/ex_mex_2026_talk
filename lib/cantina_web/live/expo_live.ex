@@ -4,7 +4,7 @@ defmodule CantinaWeb.ExpoLive do
   """
 
   use CantinaWeb, :live_view
-  use VerifiedPubSub.Subscriber, manifest: Cantina.Topics
+  use VerifiedPubSub.Subscriber, manifest: Cantina.Manifest
 
   alias Cantina.Orders
   alias CantinaWeb.Format

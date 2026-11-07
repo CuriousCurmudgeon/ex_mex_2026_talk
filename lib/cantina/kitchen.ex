@@ -9,7 +9,7 @@ defmodule Cantina.Kitchen do
   """
 
   use GenServer
-  use VerifiedPubSub, manifest: Cantina.Topics
+  use VerifiedPubSub, manifest: Cantina.Manifest
 
   alias Cantina.Ticket
 

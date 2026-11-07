@@ -11,7 +11,22 @@ defmodule Cantina.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      usage_rules: usage_rules()
+    ]
+  end
+
+  # `mix usage_rules.sync` copies the rules of these deps into AGENTS.md.
+  defp usage_rules do
+    [
+      file: "AGENTS.md",
+      usage_rules: [
+        "phoenix:elixir",
+        "phoenix:phoenix",
+        "phoenix:html",
+        "phoenix:liveview",
+        :verified_pubsub
+      ]
     ]
   end
 
@@ -67,7 +82,8 @@ defmodule Cantina.MixProject do
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:bandit, "~> 1.5"},
-      {:verified_pubsub, "~> 0.3.0"}
+      {:verified_pubsub, "~> 0.3.0"},
+      {:usage_rules, "~> 1.3", only: [:dev]}
     ]
   end
 

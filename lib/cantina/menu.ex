@@ -2,7 +2,7 @@ defmodule Cantina.Menu do
   @moduledoc "Holds the menu in an `Agent`. Adds a special during service."
 
   use Agent
-  use VerifiedPubSub, manifest: Cantina.Topics
+  use VerifiedPubSub, manifest: Cantina.Manifest
 
   alias Cantina.MenuItem
 

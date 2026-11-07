@@ -1,4 +1,4 @@
-defmodule Cantina.Topics do
+defmodule Cantina.Manifest do
   @moduledoc """
   Each topic and event of Cantina.
 

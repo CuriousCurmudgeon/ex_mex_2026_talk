@@ -5,7 +5,7 @@ defmodule CantinaWeb.BoardLive do
   """
 
   use CantinaWeb, :live_view
-  use VerifiedPubSub.Subscriber, manifest: Cantina.Topics
+  use VerifiedPubSub.Subscriber, manifest: Cantina.Manifest
 
   alias Cantina.{Kitchen, Menu, Orders, Presence, Rush}
   alias CantinaWeb.Format
