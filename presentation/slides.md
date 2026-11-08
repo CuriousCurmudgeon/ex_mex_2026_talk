@@ -1025,30 +1025,18 @@ Or maybe you want something a little more machine friendly. You can get the resu
 
 ---
 
-<!-- _class: labeled -->
+<!-- _class: labeled small-code -->
 
 ## Benchmarks
 
 <p class="where">Cantina.Manifest</p>
 
-```elixir
+```elixir {3|}
 message :placed do
   field :order_id, :string
   field :line_items, {:list, Cantina.LineItem}
 end
 ```
-
-<!--
-Does all of this have any performance cost? At runtime, no. The only check that cannot be done at compile time is the types on fields in a message
-
-These types must be checked at runtime. That's pretty low.
--->
-
----
-
-<!-- _class: labeled centered -->
-
-## Benchmarks
 
 | Scenario                                      | Plain   | Verified |
 | --------------------------------------------- | ------- | -------- |
@@ -1056,10 +1044,14 @@ These types must be checked at runtime. That's pretty low.
 | broadcast, no subscribers, 20 fields          | 0.55 µs | 2.45 µs  |
 | round trip: broadcast, receive, handle_info/2 | 0.63 µs | 1.23 µs  |
 | broadcast to 100 subscribers                  | 94 µs   | 108 µs   |
-| `{:list, :string}` field, 1,000 elements      | 0.56 µs | 7.1 µs   |
-| `{:list, :string}` field, 100,000 elements    | 0.53 µs | 606 µs   |
+| <span class="hl-row" data-step="1"></span>`{:list, :string}` field, 1,000 elements      | 0.56 µs | 7.1 µs   |
+| <span class="hl-row" data-step="1"></span>`{:list, :string}` field, 100,000 elements    | 0.53 µs | 606 µs   |
 
 <!--
+Does all of this have any performance cost? At runtime, no. The only check that cannot be done at compile time is the types on fields in a message
+
+These types must be checked at runtime. That's pretty low.
+
 You can see here that we're talking about microseconds. Now, if you start broadasting large lists over pub/sub, that does get into hundreds of microseconds, but that is not a use case that I have seen. I haven't worked on an app that sends messages that heavy.
 
 There is a hit on compilation times though.
@@ -1098,14 +1090,28 @@ I told Claude I wanted run and compile time benchmarks. 15 minutes later I had b
 | 250    | 18 MB             | 3.6 MB            |
 
 <!--
-This led me to upgrade Spark because Zach Daniel had thrown the robot at Spark performance in the weeks since I had started working on the library. The big win was reducing the size of the .beam file from 18 -> 3.6 MB on the 250 topic case.
+Those numbers were from Spark 2.7.9. I initially benchmarked on 2.7.2. This led me to upgrade Spark because Zach Daniel had thrown the robot at Spark performance in the weeks since I had started working on the library. The big win was reducing the size of the .beam file from 18 -> 3.6 MB on the 250 topic case.
+-->
+
+---
+
+<!-- _class: statement -->
+
+# Next Steps
+
+<!--
+Where do we go from here? This library is in production at work. It is not being used everywhere yet. I'll continue to refine the library as I port the rest of our usage. We're consistently finding bugs and inconsistent usage as we port the legacy pub/sub. That is the part that takes the most time.
+
+We continue to run into topics and messages with inconsistent shapes. It's very clear that there were no guiding principles here.
+
+I expect the API to be a bit in flux as that happens. I think the core is pretty set now, but edge cases will come up that need to be addressed. For example, while putting together this demo app a case came up that we could verify at compile-time that the library didn't support yet.
 -->
 
 ---
 
 <!-- _class: labeled -->
 
-## Next Steps
+## Verifying topics restricted to certain atoms
 
 ```elixir
 # Cantina.Manifest
@@ -1122,12 +1128,6 @@ end
 ```
 
 <!--
-Where do we go from here? This library is in production at work. It is not being used everywhere yet. I'll continue to refine the library as I port the rest of our usage. We're consistently finding bugs and inconsistent usage as we port the legacy pub/sub. That is the part that takes the most time.
-
-We continue to run into topics and messages with inconsistent shapes. It's very clear that there were no guiding principles here.
-
-I expect the API to be a bit in flux as that happens. I think the core is pretty set now, but edge cases will come up that need to be addressed. For example, while putting together this demo app a case came up that we could verify at compile-time that the library didn't support yet.
-
 This is a topic for stations in the kitchen. The list of stations is a list of atoms known at compile-time. It could be a compile-time error if you try to use value not in that list for :station. I haven't ported anything like this in our app yet, so I haven't gotten to it.
 -->
 

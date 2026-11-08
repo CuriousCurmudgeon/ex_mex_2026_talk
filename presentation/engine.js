@@ -10,6 +10,10 @@
 // (marp -s, or an HTML export). Each step is a hidden marker element marked as
 // a fragment. The theme highlights the lines of whichever marker is current.
 // When a slide has two animated blocks, the first block's steps run first.
+//
+// A table row can light up with a step too: put
+// <span class="hl-row" data-step="1"></span> in its first cell. See the
+// table row section at the end of theme.css.
 
 const STEPS = /\{([\d,\-|\s]*)\}\s*$/
 

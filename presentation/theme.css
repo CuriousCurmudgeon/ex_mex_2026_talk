@@ -57,6 +57,12 @@ section.labeled.centered {
   flex-direction: column;
 }
 
+/* A table under a code block lines up with the code box. */
+section.labeled table {
+  display: table;
+  width: 100%;
+}
+
 section.labeled.centered table {
   margin: auto !important;
   width: auto;
@@ -286,4 +292,50 @@ section pre:has(.hl-step[data-step="6"][data-bespoke-marp-current-fragment]) .hl
 section pre:has(.hl-step[data-step="7"][data-bespoke-marp-current-fragment]) .hl-line.s7,
 section pre:has(.hl-step[data-step="8"][data-bespoke-marp-current-fragment]) .hl-line.s8 {
   opacity: 1;
+}
+
+/* Table rows can join a highlight. Put an empty marker in a row's first cell:
+ *   <span class="hl-row" data-step="1"></span>  lights up with step 1 of the
+ *                                               slide's animated code block
+ *   <span class="hl-row hl-on"></span>          highlighted all the time
+ * The step number is matched across the whole slide, so use this on slides
+ * with one animated code block. */
+section td {
+  transition: background 0.2s, opacity 0.2s;
+}
+
+section tr:has(.hl-row.hl-on) td,
+section:has(.hl-step[data-step="1"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="1"]) td,
+section:has(.hl-step[data-step="2"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="2"]) td,
+section:has(.hl-step[data-step="3"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="3"]) td,
+section:has(.hl-step[data-step="4"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="4"]) td,
+section:has(.hl-step[data-step="5"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="5"]) td,
+section:has(.hl-step[data-step="6"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="6"]) td,
+section:has(.hl-step[data-step="7"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="7"]) td,
+section:has(.hl-step[data-step="8"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="8"]) td {
+  background: #f4d0d5; /* the code tint on white, solid so row striping does not show through */
+}
+
+section tr:has(.hl-row.hl-on) td:first-child,
+section:has(.hl-step[data-step="1"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="1"]) td:first-child,
+section:has(.hl-step[data-step="2"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="2"]) td:first-child,
+section:has(.hl-step[data-step="3"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="3"]) td:first-child,
+section:has(.hl-step[data-step="4"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="4"]) td:first-child,
+section:has(.hl-step[data-step="5"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="5"]) td:first-child,
+section:has(.hl-step[data-step="6"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="6"]) td:first-child,
+section:has(.hl-step[data-step="7"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="7"]) td:first-child,
+section:has(.hl-step[data-step="8"][data-bespoke-marp-current-fragment]) tr:has(.hl-row[data-step="8"]) td:first-child {
+  box-shadow: inset 6px 0 0 #c8102e;
+}
+
+section table:has(.hl-row.hl-on) tr:not(:has(.hl-row.hl-on)) td,
+section:has(.hl-step[data-step="1"][data-bespoke-marp-current-fragment]) table:has(.hl-row) tr:not(:has(.hl-row[data-step="1"])) td,
+section:has(.hl-step[data-step="2"][data-bespoke-marp-current-fragment]) table:has(.hl-row) tr:not(:has(.hl-row[data-step="2"])) td,
+section:has(.hl-step[data-step="3"][data-bespoke-marp-current-fragment]) table:has(.hl-row) tr:not(:has(.hl-row[data-step="3"])) td,
+section:has(.hl-step[data-step="4"][data-bespoke-marp-current-fragment]) table:has(.hl-row) tr:not(:has(.hl-row[data-step="4"])) td,
+section:has(.hl-step[data-step="5"][data-bespoke-marp-current-fragment]) table:has(.hl-row) tr:not(:has(.hl-row[data-step="5"])) td,
+section:has(.hl-step[data-step="6"][data-bespoke-marp-current-fragment]) table:has(.hl-row) tr:not(:has(.hl-row[data-step="6"])) td,
+section:has(.hl-step[data-step="7"][data-bespoke-marp-current-fragment]) table:has(.hl-row) tr:not(:has(.hl-row[data-step="7"])) td,
+section:has(.hl-step[data-step="8"][data-bespoke-marp-current-fragment]) table:has(.hl-row) tr:not(:has(.hl-row[data-step="8"])) td {
+  opacity: 0.35;
 }
