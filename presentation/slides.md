@@ -134,9 +134,13 @@ Nobody knew. Nobody had decided what the behavior should be, so it was a combina
 
 ---
 
-```elixir
-# Cantina.Orders
+<!-- _class: labeled small-code -->
 
+## No Helper Module
+
+<p class="where">Cantina.Orders · messy-pubsub</p>
+
+```elixir
 for ticket <- tickets do
   :ok = Kitchen.open(ticket)
 
@@ -162,9 +166,13 @@ Going down that path with our TexMex app, you can see how we broadcast tickets t
 
 ---
 
-```elixir
-# CantinaWeb.StationLive
+<!-- _class: labeled -->
 
+## No Helper Module
+
+<p class="where">CantinaWeb.StationLive · messy-pubsub</p>
+
+```elixir
 if connected?(socket) do
   Phoenix.PubSub.subscribe(Cantina.PubSub, "stations:#{station}")
   Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
@@ -178,11 +186,14 @@ Each kitchen station then subscribe to the topic for their station. Once again, 
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled small-code -->
+
+## No Helper Module
+
+<p class="where">CantinaWeb.StationLive · messy-pubsub</p>
+
 
 ```elixir
-# CantinaWeb.StationLive
-
 def handle_info({:fired, ticket}, socket), do: {:noreply, put_ticket(socket, ticket)}
 
 def handle_info({:claimed, id, name}, socket) do
@@ -225,9 +236,13 @@ Like us, when you start to do this you will probably start finding the source of
 
 ---
 
-```elixir
-# Cantina.Orders
+<!-- _class: labeled -->
 
+## Creating Helper Modules
+
+<p class="where">Cantina.Orders · organized-pubsub</p>
+
+```elixir
 for ticket <- tickets do
   :ok = Kitchen.open(ticket)
   Cantina.PubSub.broadcast_fired(ticket)
@@ -242,11 +257,14 @@ So we centralized. Here's the same example from our Tex Mex sample app with this
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled small-code -->
+
+## Creating Helper Modules
+
+<p class="where">CantinaWeb.StationLive · organized-pubsub</p>
+
 
 ```elixir
-# CantinaWeb.StationLive
-
 if connected?(socket) do
   :ok = Cantina.PubSub.subscribe_station(station)
   :ok = Cantina.PubSub.subscribe_menu()
@@ -260,11 +278,14 @@ And here is how we subscribe to those topics then.
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled small-code -->
+
+## Creating Helper Modules
+
+<p class="where">CantinaWeb.StationLive · organized-pubsub</p>
+
 
 ```elixir
-# CantinaWeb.StationLive
-
 def handle_info({:fired, %{ticket: ticket}}, socket),
   do: {:noreply, put_ticket(socket, ticket)}
 
@@ -284,7 +305,12 @@ And how we handle them. This is just standard handle_info usage for pub/sub.
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled tiny-code -->
+
+## Creating Helper Modules
+
+<p class="where">Cantina.PubSub · organized-pubsub</p>
+
 
 ```elixir
 defmodule Cantina.PubSub do
@@ -331,9 +357,13 @@ The robots are really good at this kind of thing. You can have reliable mix docs
 
 ---
 
-```elixir
-# CantinaWeb.HomeLive
+<!-- _class: labeled -->
 
+## Verified Routes
+
+<p class="where">CantinaWeb.HomeLive</p>
+
+```elixir
 def handle_event("pick", %{"station" => station}, socket) do
   name =
     case String.trim(socket.assigns.form[:name].value || "") do
@@ -346,7 +376,7 @@ end
 ```
 
 <!--
-This is all well and good, but we can do better. I'm a big fan of verified routes in Phoenix. Here we can see an example of one in use in a handle_event function. User pick what kitchen station they want to work in and we push_navigate them there.
+This is all well and good, but we can do better. I'm a big fan of verified routes in Phoenix. Here we can see an example of one in use in a handle_event function. Users pick what kitchen station they want to work in and we push_navigate them there.
 
 Verified PubSub uses the router as a DSL to build up a data structure of valid routes in our application. It gives you compile-time validation that the routes you're using are correct.
 
@@ -381,7 +411,7 @@ So I did that with a new library called verified_pubsub. This is an idea that ha
 <!--
 But we have LLMs now. Quinn Wilton's talk at ElixirConf US this year has really stuck with me. The barrier between that idea in your head and a working implementation has never been smaller. Quinn was talking about really ambitious projects that previously would have taken hundreds or thousands of hours to implement. They may have needed an entire team all putting in those kinds of hours. LLMs have changed that calculus.
 
-I watched her talk knowing this was true. I was sitting in the front row. I had this idea for years that I had not been able to justify spending the time on. But I had vibe coded an initial version of verified_pubsub in 4-5 hours a few Sundays before ElixirConf while doing other work around my house.
+I watched her talk from knowing this was true. I had this idea for years that I had not been able to justify spending the time on. But I had vibe coded an initial version of verified_pubsub in 4-5 hours a few Sundays before ElixirConf while doing other work around my house.
 -->
 
 ---
@@ -398,9 +428,13 @@ As I walk through this library, let your mind wander. You may not like my soluti
 
 ---
 
-```elixir
-# CantinaWeb.Router
+<!-- _class: labeled -->
 
+## Verified Routes
+
+<p class="where">CantinaWeb.Router</p>
+
+```elixir
 scope "/", CantinaWeb do
   pipe_through :browser
 
@@ -419,7 +453,12 @@ Verified routes derives valid routes through the router module. Let's look at wh
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled tiny-code -->
+
+## Manifests
+
+<p class="where">Cantina.Manifest</p>
+
 
 ```elixir
 defmodule Cantina.Manifest do
@@ -453,6 +492,12 @@ Manifest here means something like a shipping manifest. A shipping manifest list
 
 ---
 
+<!-- _class: labeled -->
+
+## Manifests
+
+<p class="where">Cantina.Manifest</p>
+
 ```elixir
 topic :table, ["tables", :table_id]
 ```
@@ -470,9 +515,13 @@ This DSL uses Spark. It gives us the equivalent of a router module for pub/sub. 
 
 ---
 
-```elixir
-# Cantina.Orders
+<!-- _class: labeled -->
 
+## Broadcasting
+
+<p class="where">Cantina.Orders</p>
+
+```elixir
 for ticket <- tickets do
   :ok = Kitchen.open(ticket)
   broadcast!(:station, %{station: ticket.station}, :fired, %{ticket: ticket})
@@ -492,6 +541,12 @@ We call broadcast with or without a bang. Looking at the second broadcast call h
 
 ---
 
+<!-- _class: labeled -->
+
+## Manifests
+
+<p class="where">Cantina.Manifest</p>
+
 ```elixir
 topic :table, ["tables", :table_id] do
   message :placed do
@@ -507,9 +562,13 @@ As a reminder, here is the section from the manifest for just this event. We see
 
 ---
 
-```elixir
-# Cantina.Kitchen
+<!-- _class: labeled -->
 
+## Broadcasting
+
+<p class="where">Cantina.Kitchen</p>
+
+```elixir
 broadcast_from!(pid, :station, %{station: station}, :bumped, %{
   ticket_id: ticket_id,
   cook_seconds: cook_seconds
@@ -521,6 +580,12 @@ That was an example for :table. Looking at a usage of :station -> :bumped, you c
 -->
 
 ---
+
+<!-- _class: labeled -->
+
+## Subscribing
+
+<p class="where">CantinaWeb.DinerLive</p>
 
 ```elixir
 defmodule CantinaWeb.DinerLive do
@@ -546,9 +611,13 @@ It looks pretty much like you would expect. We subscribe to the :table topic. A 
 
 ---
 
-```elixir
-# CantinaWeb.DinerLive
+<!-- _class: labeled -->
 
+## Handling Messages
+
+<p class="where">CantinaWeb.DinerLive</p>
+
+```elixir
 handle_broadcast :table, :ready, %{order_id: id}, socket do
   {:noreply, set_status(socket, id, :ready)}
 end
@@ -564,9 +633,13 @@ Now, I talked earlier about a philosophical disagreement on the team about how w
 
 ---
 
-```elixir
-# CantinaWeb.BoardLive
+<!-- _class: labeled -->
 
+## Handling Messages
+
+<p class="where">CantinaWeb.BoardLive</p>
+
+```elixir
 ignore_broadcast :station, [:claimed, :released]
 
 ignore_broadcast :expo, :ticket_ready
@@ -578,7 +651,12 @@ In this example, you can see this live view subscribes to a couple of topics tha
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled small-code -->
+
+## Compilation Errors: the topic exists
+
+<p class="where">Cantina.Orders</p>
+
 
 ```elixir
 broadcast!(:tables, %{table_id: table_id}, :placed, %{
@@ -608,7 +686,12 @@ The answer is that the manifest lets us do a lot. We can verify that the topic e
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled small-code -->
+
+## Compilation Errors: the topic is given the correct params
+
+<p class="where">Cantina.Orders</p>
+
 
 ```elixir
 broadcast!(:table, %{table: table_id}, :placed, %{
@@ -633,7 +716,12 @@ We can verify that the topic is given the correct params to be built. In this ex
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled small-code -->
+
+## Compilation Errors: the message exists in the manifest
+
+<p class="where">Cantina.Orders</p>
+
 
 ```elixir
 broadcast!(:table, %{table_id: table_id}, :paid, %{
@@ -655,7 +743,12 @@ We can verify that the message we're broadcasting exists in the manifest. There 
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled small-code -->
+
+## Compilation Errors: the payload has the correct shape
+
+<p class="where">Cantina.Orders</p>
+
 
 ```elixir
 broadcast!(:table, %{table_id: table_id}, :placed, %{
@@ -682,7 +775,12 @@ We can verify that the payload of the message has the correct shape. The payload
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled small-code -->
+
+## Compilation Errors: subscribing to a topic that exists
+
+<p class="where">CantinaWeb.DinerLive</p>
+
 
 ```elixir
 :ok = subscribe(:tables, %{table_id: table_id})
@@ -704,7 +802,12 @@ We can verify that you are subscribing to a topic that exists in the manifest. J
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled small-code -->
+
+## Compilation Errors: the correct params to build the topic
+
+<p class="where">CantinaWeb.DinerLive</p>
+
 
 ```elixir
 :ok = subscribe(:table, %{id: table_id})
@@ -726,11 +829,14 @@ We can verify that you've passed the correct params to build the topic. In this 
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled small-code -->
+
+## Compilation Errors: what if you don't handle a message?
+
+<p class="where">CantinaWeb.DinerLive</p>
+
 
 ```elixir
-# CantinaWeb.DinerLive
-
 handle_broadcast :table, :placed, %{order_id: id, line_items: line_items}, socket do
   order = %{id: id, line_items: line_items, status: :placed}
   {:noreply, update(socket, :orders, &upsert(&1, order))}
@@ -759,7 +865,10 @@ A recurring pattern we see these days is that tools that are good for humans are
 
 ---
 
-<!-- _class: small-code -->
+<!-- _class: labeled small-code -->
+
+## Mix Task
+
 
 ```
 $ mix phx.routes
@@ -780,7 +889,10 @@ Robots are great with grep, but we can do better than that. We already have a ma
 
 ---
 
-<!-- _class: tiny-code -->
+<!-- _class: labeled tiny-code -->
+
+## Mix Task
+
 
 <pre class="term"><code>$ mix verified_pubsub.topics
 
@@ -798,12 +910,15 @@ Subscribes (1)
 ...</code></pre>
 
 <!--
-We can do that with `mix verified.pubsub.topics`
+We can do that and make use of it with `mix verified.pubsub.topics`
 -->
 
 ---
 
-<!-- _class: tiny-code -->
+<!-- _class: labeled tiny-code -->
+
+## Mix Task
+
 
 <pre class="term"><code>...
 
@@ -826,7 +941,10 @@ This mix task gives us all the topics in the app, where they are subscribed to, 
 
 ---
 
-<!-- _class: tiny-code -->
+<!-- _class: labeled tiny-code -->
+
+## Mix Task
+
 
 <pre class="term"><code>$ mix verified_pubsub.topics table
 
@@ -855,7 +973,10 @@ And you can filter it as well. If you want to see all the usage of a particular 
 
 ---
 
-<!-- _class: tiny-code -->
+<!-- _class: labeled tiny-code -->
+
+## Mix Task
+
 
 <pre class="term"><code>$ mix verified_pubsub.topics table ready
 
@@ -876,7 +997,10 @@ Or you can get really fine grained and filter it by just the event on the topic 
 
 ---
 
-<!-- _class: tiny-code -->
+<!-- _class: labeled tiny-code -->
+
+## Mix Task
+
 
 ```
 $ mix verified_pubsub.topics table --format json
@@ -896,10 +1020,16 @@ $ mix verified_pubsub.topics table --format json
 ```
 
 <!--
-Or maybe you want something a little more machine readable. You can get the results as unformatted json as well. Just pipe it into jq or your favorite tool for additional munging.
+Or maybe you want something a little more machine friendly. You can get the results as unformatted json as well. Just pipe it into jq or your favorite tool for additional munging.
 -->
 
 ---
+
+<!-- _class: labeled -->
+
+## Benchmarks
+
+<p class="where">Cantina.Manifest</p>
 
 ```elixir
 message :placed do
@@ -915,6 +1045,10 @@ These types must be checked at runtime. That's pretty low.
 -->
 
 ---
+
+<!-- _class: labeled centered -->
+
+## Benchmarks
 
 | Scenario                                      | Plain   | Verified |
 | --------------------------------------------- | ------- | -------- |
@@ -933,6 +1067,10 @@ There is a hit on compilation times though.
 
 ---
 
+<!-- _class: labeled centered -->
+
+## Benchmarks
+
 | Topics | Plain  | Verified | Manifest alone | Manifest .beam | Files recompiled by a manifest edit |
 | ------ | ------ | -------- | -------------- | -------------- | ----------------------------------- |
 | 20     | 0.11 s | 0.38 s   | 0.26 s         | 299 KB         | 71 (0.36 s)                         |
@@ -949,6 +1087,10 @@ I told Claude I wanted run and compile time benchmarks. 15 minutes later I had b
 
 ---
 
+<!-- _class: labeled centered -->
+
+## Benchmarks
+
 | Topics | Spark 2.7.2 .beam | Spark 2.7.9 .beam |
 | ------ | ----------------- | ----------------- |
 | 20     | 1.5 MB            | 299 KB            |
@@ -960,6 +1102,10 @@ This led me to upgrade Spark because Zach Daniel had thrown the robot at Spark p
 -->
 
 ---
+
+<!-- _class: labeled -->
+
+## Next Steps
 
 ```elixir
 # Cantina.Manifest

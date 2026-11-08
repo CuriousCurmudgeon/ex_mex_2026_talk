@@ -42,6 +42,48 @@ section.statement h1 {
   border: none;
 }
 
+/* A code slide with a heading pinned top-left and a gray subtitle that names
+ * the module and branch. The default theme centers content with
+ * place-content, so it is reset here to keep the heading in one spot. */
+section.labeled {
+  place-content: start !important;
+  padding-top: 32px;
+}
+
+/* Heading stays pinned at the top; the table sits in the middle of the space
+ * below it. */
+section.labeled.centered {
+  display: flex !important;
+  flex-direction: column;
+}
+
+section.labeled.centered table {
+  margin: auto !important;
+  width: auto;
+}
+
+section.labeled.tiny-code pre {
+  line-height: 1.28;
+}
+
+section.labeled h2 {
+  font-size: 34px;
+  margin: 0;
+  border: none;
+}
+
+section.labeled p.where {
+  font-family: "JetBrains Mono", Menlo, Monaco, monospace;
+  font-size: 22px;
+  color: var(--muted);
+  margin: 2px 0 14px;
+}
+
+section.labeled h2 + pre,
+section.labeled h2 + table {
+  margin-top: 16px;
+}
+
 section.title h1 {
   font-size: 64px;
   border: none;
