@@ -123,6 +123,28 @@ section pre .hljs-punctuation {
   color: var(--ink);
 }
 
+/* Terminal output, in the colors the mix task prints. Each ANSI color is
+ * darkened so it reads on a white slide. */
+section pre.term .t-b {
+  font-weight: 700;
+}
+
+section pre.term .t-cyn {
+  color: #00727a;
+}
+
+section pre.term .t-mag {
+  color: #a1007a;
+}
+
+section pre.term .t-grn {
+  color: #0a6b14;
+}
+
+section pre.term .t-dim {
+  color: #8a8a8a;
+}
+
 section table {
   font-size: 24px;
 }

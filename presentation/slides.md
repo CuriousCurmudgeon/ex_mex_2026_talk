@@ -11,9 +11,9 @@ paginate: false
 Brian Meeker
 
 <!--
-Good day everybody. How's your ExMex been?
+Good morning everybody. Really excited to be here at ExMex.
 
-Usually, I start my talks by reminding everybody about the rule of two feet. If the content of this talk just isn't working for you, vote with your feet and go make better use of your time. I won't be offended. This is a single track conference though, so your choices are this talk or the hallway track. I still won't be offended if you leave though. The hallway track is pretty great.
+Even though this is a single track conference, I still want to encourage everybody to follow rule of two feet. If the content of this talk just isn't working for you, vote with your feet and go make better use of your time. I won't be offended. That goes for everybody watching on YouTube later too. The internet is vast and full of wonders. I can't compete with that.
 -->
 
 ---
@@ -38,11 +38,11 @@ Engineering Manager, GetThru
 </div>
 
 <!--
-My name is Brian Meeker. I've traveled here today from the far off lands of Indiana.
+My name is Brian Meeker. I've traveled here today from the far off lands of Indiana. This is my first time stepping foot in Texas outside of an airport.
 
 I spend my work hours as the engineering manager at GetThru. Because of the upheaval in our industry over the past year, I still get to write code. Well, a robot writes code for me, but I still get to tell myself that I'm writing code.
 
-You can mostly find me these days on Bluesky. These slides will be available on GitHub. That same QR code will be up at end as well.
+You can mostly find me these days on Bluesky. These slides are available on GitHub. That same QR code will be up at end as well. You don't have to rush to get it right now.
 -->
 
 ---
@@ -63,7 +63,7 @@ You can mostly find me these days on Bluesky. These slides will be available on 
 </div>
 
 <!--
-Today we're going to be talk about pub/sub. We'll talk about what we get out of the box with Phoenix Pub/Sub. We'll talk about the kinds of messes you can make with this. And then we'll talk about how we can layer compile-time guarantees on top of pub/sub to help out both human and LLM-assisted development. Because, at least for the current time being, most things you do to make development better for humans also happens to make it better for robots as well.
+Today we're going to be talk about pub/sub. We'll talk about what we get out of the box with Phoenix Pub/Sub. We'll talk about the kinds of messes you can make with this. And then we'll talk about how we can layer compile-time guarantees on top of pub/sub to help out both human and LLM-assisted development. Because, at least for the current time being, most things you do to make development better for humans also happen to make it better for robots as well.
 
 All code examples today are pulled from the demo app in the git repo. We're at ExMex, so what better way to walk through our examples than with a demo app for a Tex Mex restaraunt. You can find it at https://texmex.fly.dev/
 
@@ -74,38 +74,36 @@ Feel free to play around with this or pull down the code. It's all vibes and it 
 
 <!-- _class: statement -->
 
-# What kind of messes can you make with pub/sub?
+# Pub/Sub Spaghetti 🍝
 
 <!--
 What kind of messes can you make with pub/sub though? What pain points were we running into at work?
 
-GetThru's code base recently passed the 10 year mark. I've worked on older code bases than this, but this is one of the older ones. And like most older code bases, a lot of people have worked on it over the years. Historically, we work in the election industry, so as election time approached, there would be pressure to rapidly address issues and add new features for important clients.
+GetThru's code base recently passed the 10 year mark. I've worked on older code bases than this. I've been doing this a long time. But this is one of the older ones. And like most older code bases, a lot of people have worked on it over the years. Historically, we work in the election industry, so as election time approaches, there is pressure to rapidly address issues and add new features for important clients.
 -->
 
 ---
 
-<!-- _class: statement -->
-
-# We'll clean it up later
+![bg contain](images/anakin_padme_clean_it_up.jpg)
 
 <!--
 And then the promised time to clean it up later would rarely materialize This combination of many hands and time pressure does not lead to great solutions. Our pub/sub usage had grown haphazardly this entire time. It had never been seriously refactored.
 
-This mean that nothing was centralized. Every module directly used the functions exposed in the default Pub/Sub module you get with a new Phoenix app. In many ways, this is similar to the context module problem. People see what the generator gives you out of the box and just assume that is how it needs to stay. It's not.
+This mean that nothing was centralized. Every module directly used the functions exposed in the default Pub/Sub module you get with a new Phoenix app. In many ways, this is similar to the context module problem. People see what the generator gives them out of the box and just assume that is how it needs to stay. It's not.
+
+Are there any old Rails devs in the room? Or maybe veterans of other frameworks that are very opinionated and magical? Have you ever worked on teams where most of them are afraid to change the structure of anything that came out of the box? Rails apps that have no concept of code living somewhere other than a model, view, or controller? I do not have a lot of professional Rails experience and even I have seen this.
 -->
 
 ---
 
 <!-- _class: statement -->
 
-# Phoenix is not that magical
+# Be the change you want to see
 
 <!--
-Are there any old Rails devs in the room? Or maybe veterans of other frameworks that are very opinionated and magical? Have you ever worked on teams where most of them are afraid to change the structure of anything that came out of the box? Rails apps that have no concept of code living somewhere other than a model, view, or controller? I have.
-
 It doesn't have to be that way though! Phoenix is not that magical. That pub/sub module that got generated? It's not magic. You can add functions to it. You can move it wherever you want!
 
-For example, I think that it's silly to have the generated pub/sub module be in the web project for a new app. Now my business layer needs to take a dependency on something in the web layer. That's wrong. Move that generated pub/sub module wherever you want. Module names and directories have no meaning in Elixir. Move them where ever you want!
+For example, I think that it's silly to have the generated pub/sub module be in the web project for a new app. Now my business layer needs to take a dependency on something in the web layer. That's wrong. Move it. Module names and directories have no meaning in Elixir. Move them where ever you want!
 -->
 
 ---
@@ -127,9 +125,11 @@ Code generators are merely a suggestion for how to get started. You don't have t
 <!--
 Circling back around though, what was GetThru's problem? What pain points were we seeing?
 
-Because every module was responsible for subscribing and broadcasting directly, there was no reasonable way to find what our pub/sub API was. There was no way to easily see what the name of a topic is. No way to keep topic naming consistent. No way to keep event naming on those topics consistent. No way to keep the shape of the payloads for those events consistent.
+Because every module was responsible for subscribing and broadcasting directly, there was no reasonable way to find what our pub/sub API was. There was no way to easily see what the name of a topic was. No way to keep topic naming consistent. No way to keep event naming on those topics consistent. No way to keep the shape of the payloads for those events consistent.
 
-And, at another level, we hadn't defined what our expected behavior was for subscribers. If a process subscribes to a topic, does it have to have an explicit handler for every possible event? What happens if unexpected events are sent? Is it ok to have a catch-all handler? If so, what should the behavior of that handler be? Should it log a warning? Should it raise and crash the process? Nobody knew. Nobody had decided what the behavior should be, so it was a combination of all of those. There was no consistency.
+And, at another level, we hadn't defined what our expected behavior was for subscribers. If a process subscribed to a topic, did it have to have an explicit handler for every possible event? What should happen if unexpected events are sent? Is it ok to have a catch-all handler? If so, what should the behavior of that handler be? Should it log a warning? Should it raise and crash the process?
+
+Nobody knew. Nobody had decided what the behavior should be, so it was a combination of all of those. There was no consistency.
 -->
 
 ---
@@ -146,10 +146,18 @@ for ticket <- tickets do
     {:fired, ticket}
   )
 end
+
+Phoenix.PubSub.broadcast(
+  Cantina.PubSub,
+  "tables:#{table_id}",
+  {:placed, order_id, line_items}
+)
 ```
 
 <!--
-Going down that path with our TexMex app, here you can see how we broadcast tickets to kitchen stations. An order comes in and each line item is sent to appropriate kitchen station.
+Now, I can't show you production code from our app, but I do have examples from TexMex showing this pattern. They are in the messy-pubsub branch.
+
+Going down that path with our TexMex app, you can see how we broadcast tickets to kitchen stations. An order comes in and each line item is sent to appropriate kitchen station. We just call broadcast directly.
 -->
 
 ---
@@ -165,7 +173,7 @@ end
 ```
 
 <!--
-Each kitchen station then subscribe to the topic for their station
+Each kitchen station then subscribe to the topic for their station. Once again, directly calling the Phoenix PubSub API.
 -->
 
 ---
@@ -194,25 +202,25 @@ end
 ```
 
 <!--
-and handles the event with handle_info.
+And then we handle those events with handle_info.
 
-This about the most basic way to do pub/sub in an Elixir app. Just call the raw functions. And this can be fine! If your app is small, then you don't need any more complexity. But when your app is larger, then this becomes unwieldy. It becomes difficult to keep track of your API for pub/sub. What topics does your app use? What is your preferred naming pattern for topics? What conventions do you want for the shape of payloads? What about the weight of payloads? Should you pass only ids around or should you pass structs with more info?
+This is about the most basic way to do pub/sub in an Elixir app. Just call functions on Phoenix Pub/Sub. And this can be fine! If your app is small, then you don't really need any more complexity. But when your app is larger, then this becomes unwieldy. It becomes difficult to keep track of your API for pub/sub. What topics does your app use? What is your preferred naming pattern for topics? What conventions do you want for the shape of payloads? What about the weight of those payloads? Should you pass around only ids around or should you pass around structs with more info?
 -->
 
 ---
 
 <!-- _class: statement -->
 
-# All three of them sent a differently shaped payload
+# Start centralizing
 
 <!--
 Answering those questions is harder unless you start centralizing your management of pub/sub
 
 The first thing we did to start addressing these issues was to start centralizing pub/sub subscribe and broadcast functions in a single module. This started making it easier to understand what pub/sub the app was even doing.
 
-We started doing this work in 2024. These days it would be pretty easy to use your LLM of choice to have one big PR that made a cross-cutting change across the app to centralize all the subscribe and broadcast functions.
+We started doing this work in 2024. These days it would be pretty easy to use your LLM of choice to have one big PR that made a cross-cutting change across the app to centralize all the subscribe and broadcast functions. That wasn't the case in 2024.
 
-Like us, when you do this you will probably start finding the source of various bugs. The worst one that we found was three different rarely used live views that all broadcast the same event on the same topic, but all three of them sent a differently shaped payload. This was difficult to spot before. It was extremely rare for more than one of these to open at the same time and see this uncommon event be published. Because of that, it was never a priority to dig into our error tracker and figure it out.
+Like us, when you start to do this you will probably start finding the source of various bugs. The worst one that we found so far was three different rarely used live views that all broadcast the same event on the same topic, but all three of them sent a differently shaped payload. This was difficult to spot before. It was extremely rare for more than one of these to be open at the same time and see this uncommon event be published. Because of that, it was never a priority to dig into our error tracker and figure it out.
 -->
 
 ---
@@ -229,7 +237,7 @@ Cantina.PubSub.broadcast_placed(table_id, order_id, line_items)
 ```
 
 <!--
-Here's the same example from our Tex Mex sample app with this approach. We can see that we're just calling functions still, but it's functions that we've defined in the Cantina.PubSub module.
+So we centralized. Here's the same example from our Tex Mex sample app with this approach. We can see that we're just calling functions still, but it's functions that we've defined in the Cantina.PubSub module.
 -->
 
 ---
@@ -245,6 +253,10 @@ if connected?(socket) do
   # ...
 end
 ```
+
+<!--
+And here is how we subscribe to those topics then.
+-->
 
 ---
 
@@ -266,21 +278,9 @@ def handle_info({:bumped, %{ticket_id: id}}, socket),
   do: {:noreply, drop_ticket(socket, id)}
 ```
 
----
-
-<!-- _class: small-code -->
-
-```elixir
-defmodule Cantina.PubSub do
-  @type station_message ::
-          {:fired, %{ticket: Ticket.t()}}
-          | {:claimed, %{ticket_id: String.t(), cook_name: String.t()}}
-          | {:released, %{ticket_id: String.t()}}
-          | {:bumped, %{station: atom(), ticket_id: String.t(), cook_seconds: non_neg_integer()}}
-
-  # ...
-end
-```
+<!--
+And how we handle them. This is just standard handle_info usage for pub/sub.
+-->
 
 ---
 
@@ -310,19 +310,23 @@ end
 ```
 
 <!--
-And they don't have to live in the PubSub module. Maybe in your app it makes more sense for them to live in various context modules. That's fine. As long as you know where they are and can easily find your topics, events, and payloads, you're way ahead of most.
+The helper functions themselves are straightforward. They just call broadcast and subscribe. All we've done is wrap the usage of Phoenix Pub/Sub in function calls that are a bit aware of our domain.
+
+And they don't have to live in the PubSub module. Maybe in your app it makes more sense for them to live in various context modules. That's fine. As long as you know where they are and can easily find your topics, events, and payloads, you're making progress.
+
+But having consistency is only half the battle here. You've made it easier to find the surface area of your pub/sub API. It won't be a big ball of mud anymore, but it might still be a plate of spaghetti. That is way more appetizing than a big ball of mud at least.
 -->
 
 ---
 
 <!-- _class: statement -->
 
-# It might still be a plate of spaghetti
+# Help you robot pal 🤖
 
 <!--
-But having consistency is only half the battle here. You've made it easier to find the surface area of your pub/sub API. It won't be a big ball of mud anymore. It might still be a plate of spaghetti, but that is way more appetizing than a big ball of mud.
+With LLM's, we started improving things more with a style guide. We have guidance for how to document functions that broadcast on topics. We have guidance for how to document a module that subscribes to topics.
 
-Another thing that can help is a style guide for LLMs. We have guidance for how to document functions that broadcast on topics. We have guidance for how to document a module that subscribes to topics. The robots are really good at this kind of thing. You can have reliable mix docs that describe what functions broadcast and what modules subscribe. This is another example of something helping humans that also happens to help the robots as well.
+The robots are really good at this kind of thing. You can have reliable mix docs that describe what functions broadcast and what modules subscribe. The robot will keep those docs up to date pretty well. The style guide is helpful for people, but great for robots.
 -->
 
 ---
@@ -342,17 +346,11 @@ end
 ```
 
 <!--
-This is all well and good, but we can do better. I'm a big fan of verified routes in Phoenix. This uses the router as a DSL to build up data structure of valid routes in our application. They give you compile-time validation that the routes you're using are correct.
--->
+This is all well and good, but we can do better. I'm a big fan of verified routes in Phoenix. Here we can see an example of one in use in a handle_event function. User pick what kitchen station they want to work in and we push_navigate them there.
 
----
+Verified PubSub uses the router as a DSL to build up a data structure of valid routes in our application. It gives you compile-time validation that the routes you're using are correct.
 
-<!-- _class: statement -->
-
-# What if we did the same thing for pub/sub?
-
-<!--
-What if we did the same thing for pub/sub? Could we enforce compile-time validation that you're broadcasting and subscribing to documented topics? Can we guarantee that a module handles all events on a topic? What about the shape of the message payload? What would we need to do that?
+What if we did the same thing for pub/sub? Can we enforce compile-time validation that you're broadcasting and subscribing to documented topics? Can we guarantee that a module handles all events on a topic? What about the shape of the message payload? What would we need to do that?
 -->
 
 ---
@@ -381,31 +379,21 @@ So I did that with a new library called verified_pubsub. This is an idea that ha
 </div>
 
 <!--
-But we have LLMs now. Quinn Wilton's talk at ElixirConf US this year has really stuck with me. The barrier between that idea in your head and a working implementation has never been smaller. Quinn was talking about really ambitious projects that previously would have taken hundreds or thousands of hours to implement. They may have needed an entire team all putting in those kinds of hours. That is not the case anymore.
+But we have LLMs now. Quinn Wilton's talk at ElixirConf US this year has really stuck with me. The barrier between that idea in your head and a working implementation has never been smaller. Quinn was talking about really ambitious projects that previously would have taken hundreds or thousands of hours to implement. They may have needed an entire team all putting in those kinds of hours. LLMs have changed that calculus.
 
-I watched her talk knowing this was true. I had this idea for years that I had not been able to justify spending the time on. But I had vibe coded an initial version of it in 4-5 hours a few Sundays before ElixirConf while doing other work around my house.
+I watched her talk knowing this was true. I was sitting in the front row. I had this idea for years that I had not been able to justify spending the time on. But I had vibe coded an initial version of verified_pubsub in 4-5 hours a few Sundays before ElixirConf while doing other work around my house.
 -->
 
 ---
 
 <!-- _class: statement -->
 
-# Those pain points in your codebase can go away now
+# Pain is optional  
 
 <!--
 If you take nothing else away from this talk, it should be this. Those pain points in your codebase can go away now. If it's a technical problem and you can articulate what properties you want the system or library to have, the robot can probably quickly build it for you. This is wild. The future is wild.
--->
 
----
-
-<!-- _class: statement -->
-
-# Let your mind wander
-
-<!--
-As I walk through this library, let your mind wander. You may not like my solution to this problem. If you can articulate what you don't like about it, you can quickly generate your own solution. Maybe you don't like my API. Maybe you don't like the dependency on Spark. Whatever it is, you can talk to me. And if my spongey brain matter disagrees with you and doesn't want those changes, it's trivial to fork my version or build your own.
-
-Let's look at the API b
+As I walk through this library, let your mind wander. You may not like my solution to this problem. If you can articulate what you don't like about it, you can quickly generate your own solution. Maybe you don't like my API. Maybe you don't like the dependency on Spark. Whatever it is, you can talk to me. And if my spongey brain matter disagrees with your spongey brain matter, it's trivial to fork my version or build your own.
 -->
 
 ---
@@ -426,7 +414,7 @@ end
 ```
 
 <!--
-Verified routes derives valid routes through the router module.
+Verified routes derives valid routes through the router module. Let's look at what we can do for verified_pubsub
 -->
 
 ---
@@ -477,7 +465,7 @@ topic :table, ["tables", :table_id]
 <!--
 Looking at the topic we have here, the first atom is a unique name for your topic. This is not the shape of the topic on the wire. That part is defined by the list. So, the topic on the wire ends up becoming something "tables:42", "tables:7", etc.
 
-This DSL uses Spark. It gives us the equivalent of a router module for pub/sub. This lets us gather metadata for what every topic and message looks like, including the shape of the payload of each message.
+This DSL uses Spark. It gives us the equivalent of a router module for pub/sub. This lets us gather metadata for what every topic and message looks like, including the shape of the payload for each message.
 -->
 
 ---
@@ -497,9 +485,9 @@ broadcast!(:table, %{table_id: table_id}, :placed, %{
 ```
 
 <!--
-How do we use it though? I strived to make the API pretty similar to phoenix_pubsub, deviating only where it made sense.
+How do we use it though? One of the design goals for this library was to make to make it as similar as possible to phoenix_pubsub, deviating only where it made sense.
 
-We call broadcast with or without a bang. The :table atom matches the name of the topic in the manifest. The table_id is interpolated into the topic name, so we get something like "tables:42" again. After that is the name of the message, :placed in this case. Finally, there is the payload of the message itself. The manifest says the message has order_id and line_items fields.
+We call broadcast with or without a bang. Looking at the second broadcast call here, the :table atom matches the name of the topic in the manifest. The table_id is interpolated into the topic name, so we get something like "tables:42" again. After that is the name of the message, :placed in this case. Finally, there is the payload of the message itself. The manifest says the message has order_id and line_items fields, so we add those.
 -->
 
 ---
@@ -513,6 +501,10 @@ topic :table, ["tables", :table_id] do
 end
 ```
 
+<!--
+As a reminder, here is the section from the manifest for just this event. We see the topic is :tables and the message is :placed. The payload for :placed has an order_id and line_items.
+-->
+
 ---
 
 ```elixir
@@ -525,7 +517,7 @@ broadcast_from!(pid, :station, %{station: station}, :bumped, %{
 ```
 
 <!--
-Just like phoenix_pubsub, you can also call broadcast_from, with or without the bang.
+That was an example for :table. Looking at a usage of :station -> :bumped, you can also call broadcast_from, with or without the bang.
 -->
 
 ---
@@ -539,7 +531,6 @@ defmodule CantinaWeb.DinerLive do
   def mount(%{"table_id" => table_id}, _session, socket) do
     if connected?(socket) do
       :ok = subscribe(:table, %{table_id: table_id})
-      :ok = subscribe(:menu)
     end
 
     # ...
@@ -564,7 +555,7 @@ end
 ```
 
 <!--
-Handling messages looks different though. Instead of handle_info, we use a handle_broadcast macro.
+Handling messages looks different though. Instead of handle_info, we use a handle_broadcast macro. Now, the previous broadcast and subscribe examples were also macros, but that was less obvious.
 
 Here we see an example of handling the :ready event on the :table topic. This message has an order_id, which we pattern match.
 
@@ -582,7 +573,7 @@ ignore_broadcast :expo, :ticket_ready
 ```
 
 <!--
-In this example, we can see this live view subscribes to a couple of topics that have messages we don't actually care about. We must explicitly handle or ignore every message on a topic.
+In this example, you can see this live view subscribes to a couple of topics that have messages we don't actually care about in this case. We must explicitly handle or ignore every message on a topic though.
 -->
 
 ---
@@ -591,6 +582,9 @@ In this example, we can see this live view subscribes to a couple of topics that
 
 ```elixir
 broadcast!(:tables, %{table_id: table_id}, :placed, %{
+  order_id: order_id,
+  line_items: line_items
+})
 ```
 
 ```
@@ -604,9 +598,12 @@ Declared topics:
 ```
 
 <!--
-Now we get to the fun parts. The library is called verified_pubsub, but what can we actually verify with this? The manifest lets us do a lot.
 
-We can verify that the topic exists.
+That leads us into the fun parts though. The library is called verified_pubsub, but what can we actually verify with this?
+
+<Pause for suggestions>
+
+The answer is that the manifest lets us do a lot. We can verify that the topic exists. Here we can see a typo. We try to broadcast on :tables, but the topic is :table.
 -->
 
 ---
@@ -615,6 +612,9 @@ We can verify that the topic exists.
 
 ```elixir
 broadcast!(:table, %{table: table_id}, :placed, %{
+  order_id: order_id,
+  line_items: line_items
+})
 ```
 
 ```
@@ -628,7 +628,7 @@ broadcast!(:table, %{table: table_id}, :placed, %{
 ```
 
 <!--
-We can verify that the topic is given the correct params to be built.
+We can verify that the topic is given the correct params to be built. In this example, we've accidentally passed table instead of table_id
 -->
 
 ---
@@ -637,6 +637,9 @@ We can verify that the topic is given the correct params to be built.
 
 ```elixir
 broadcast!(:table, %{table_id: table_id}, :paid, %{
+  order_id: order_id,
+  line_items: line_items
+})
 ```
 
 ```
@@ -647,7 +650,7 @@ Declared events: [:placed, :ready, :served]
 ```
 
 <!--
-We can verify that the message we're broadcasting exists in the manifest
+We can verify that the message we're broadcasting exists in the manifest. There is no event named :paid, so that is a compilation error.
 -->
 
 ---
@@ -674,7 +677,7 @@ Declared at lib/cantina/manifest.ex:14:
 ```
 
 <!--
-We can verify that the payload of the message has the correct shape.
+We can verify that the payload of the message has the correct shape. The payload does not accept tip, so that is a compilation error.
 -->
 
 ---
@@ -696,7 +699,7 @@ Declared topics:
 ```
 
 <!--
-We can verify that you subscribing to a topic that exists in the manifest
+We can verify that you are subscribing to a topic that exists in the manifest. Just like we tried to broadcast on :tables instead of :table, we've done the same here for subscribe.
 -->
 
 ---
@@ -718,7 +721,7 @@ We can verify that you subscribing to a topic that exists in the manifest
 ```
 
 <!--
-We can verify that you've passed the correct params to build the topic.
+We can verify that you've passed the correct params to build the topic. In this case, we passed :id instead of :table_id. In all of these examples, you can see that the error message is pretty helpful. It tells you exactly what is wrong. And that means the compilation error tells your robot exactly what is wrong too.
 -->
 
 ---
@@ -726,9 +729,16 @@ We can verify that you've passed the correct params to build the topic.
 <!-- _class: small-code -->
 
 ```elixir
-# handle_broadcast :table, :served, %{order_id: id}, socket do
-#   {:noreply, set_status(socket, id, :served)}
-# end
+# CantinaWeb.DinerLive
+
+handle_broadcast :table, :placed, %{order_id: id, line_items: line_items}, socket do
+  order = %{id: id, line_items: line_items, status: :placed}
+  {:noreply, update(socket, :orders, &upsert(&1, order))}
+end
+
+handle_broadcast :table, :ready, %{order_id: id}, socket do
+  {:noreply, set_status(socket, id, :ready)}
+end
 ```
 
 ```
@@ -742,9 +752,9 @@ Add a `handle_broadcast` clause for each, or dismiss it explicitly:
 ```
 
 <!--
-What if you don't handle a message on a topic? Compilation error
+What if you don't handle a message on a topic? Compilation error. Here, we have an example of handling the :placed and :ready messages on :table. We don't handle or ignore :served though, so we get a compilation error.
 
-A recurring pattern we see these days is that tools that are good for humans are also good for LLMs. This is yet another example. This validation is useful for both human and robot.
+A recurring pattern we see these days is that tools that are good for humans are also good for LLMs. This is yet another example. This validation is useful if I'm writing this code by hand or if the robot is writing it.
 -->
 
 ---
@@ -772,22 +782,20 @@ Robots are great with grep, but we can do better than that. We already have a ma
 
 <!-- _class: tiny-code -->
 
-```
-$ mix verified_pubsub.topics
+<pre class="term"><code>$ mix verified_pubsub.topics
 
-Cantina.Manifest
+<span class="t-b">Cantina.Manifest</span>
 
-:table  tables:<table_id>
+<span class="t-b t-cyn">:table</span>  tables:&lt;table_id&gt;
 
 Subscribes (1)
-  subscribe          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
+  <span class="t-mag">subscribe</span>          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
 
-:placed  1 broadcast, 1 handler
-  broadcast          lib/cantina/orders.ex:96                Cantina.Orders
-  handle_broadcast   lib/cantina_web/live/diner_live.ex:152  CantinaWeb.DinerLive
+<span class="t-b">:placed</span>  1 broadcast, 1 handler
+  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:96                Cantina.Orders
+  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:152  CantinaWeb.DinerLive
 
-...
-```
+...</code></pre>
 
 <!--
 We can do that with `mix verified.pubsub.topics`
@@ -797,22 +805,20 @@ We can do that with `mix verified.pubsub.topics`
 
 <!-- _class: tiny-code -->
 
-```
-...
+<pre class="term"><code>...
 
-:station  stations:<station>
+<span class="t-b t-cyn">:station</span>  stations:&lt;station&gt;
 
 Subscribes (2)
-  subscribe          lib/cantina_web/live/board_live.ex:20     CantinaWeb.BoardLive
-  subscribe          lib/cantina_web/live/station_live.ex:30   CantinaWeb.StationLive
+  <span class="t-mag">subscribe</span>          lib/cantina_web/live/board_live.ex:20     CantinaWeb.BoardLive
+  <span class="t-mag">subscribe</span>          lib/cantina_web/live/station_live.ex:30   CantinaWeb.StationLive
 
-:claimed  1 broadcast, 1 handler, 1 ignore
-  broadcast          lib/cantina/kitchen.ex:107                Cantina.Kitchen
-  handle_broadcast   lib/cantina_web/live/station_live.ex:151  CantinaWeb.StationLive
-  ignore_broadcast   lib/cantina_web/live/board_live.ex:190    CantinaWeb.BoardLive
+<span class="t-b">:claimed</span>  1 broadcast, 1 handler, 1 ignore
+  <span class="t-grn">broadcast</span>          lib/cantina/kitchen.ex:107                Cantina.Kitchen
+  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/station_live.ex:151  CantinaWeb.StationLive
+  <span class="t-dim">ignore_broadcast</span>   lib/cantina_web/live/board_live.ex:190    CantinaWeb.BoardLive
 
-...
-```
+...</code></pre>
 
 <!--
 This mix task gives us all the topics in the app, where they are subscribed to, and a breakdown of usage of all the messages on each topic. We can see where each message is broadcast, handled, and ignored. You and the robot don't have to grep through your code anymore. The metadata is right there.
@@ -822,28 +828,26 @@ This mix task gives us all the topics in the app, where they are subscribed to, 
 
 <!-- _class: tiny-code -->
 
-```
-$ mix verified_pubsub.topics table
+<pre class="term"><code>$ mix verified_pubsub.topics table
 
-Cantina.Manifest
+<span class="t-b">Cantina.Manifest</span>
 
-:table  tables:<table_id>
+<span class="t-b t-cyn">:table</span>  tables:&lt;table_id&gt;
 
 Subscribes (1)
-  subscribe          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
+  <span class="t-mag">subscribe</span>          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
 
-:placed  1 broadcast, 1 handler
-  broadcast          lib/cantina/orders.ex:96                Cantina.Orders
-  handle_broadcast   lib/cantina_web/live/diner_live.ex:152  CantinaWeb.DinerLive
+<span class="t-b">:placed</span>  1 broadcast, 1 handler
+  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:96                Cantina.Orders
+  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:152  CantinaWeb.DinerLive
 
-:ready  1 broadcast, 1 handler
-  broadcast          lib/cantina/orders.ex:168               Cantina.Orders
-  handle_broadcast   lib/cantina_web/live/diner_live.ex:157  CantinaWeb.DinerLive
+<span class="t-b">:ready</span>  1 broadcast, 1 handler
+  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:168               Cantina.Orders
+  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:157  CantinaWeb.DinerLive
 
-:served  1 broadcast, 1 handler
-  broadcast          lib/cantina/orders.ex:109               Cantina.Orders
-  handle_broadcast   lib/cantina_web/live/diner_live.ex:161  CantinaWeb.DinerLive
-```
+<span class="t-b">:served</span>  1 broadcast, 1 handler
+  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:109               Cantina.Orders
+  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:161  CantinaWeb.DinerLive</code></pre>
 
 <!--
 And you can filter it as well. If you want to see all the usage of a particular topic, pass the name of the topic.
@@ -853,20 +857,18 @@ And you can filter it as well. If you want to see all the usage of a particular 
 
 <!-- _class: tiny-code -->
 
-```
-$ mix verified_pubsub.topics table ready
+<pre class="term"><code>$ mix verified_pubsub.topics table ready
 
-Cantina.Manifest
+<span class="t-b">Cantina.Manifest</span>
 
-:table  tables:<table_id>
+<span class="t-b t-cyn">:table</span>  tables:&lt;table_id&gt;
 
 Subscribes (1)
-  subscribe          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
+  <span class="t-mag">subscribe</span>          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
 
-:ready  1 broadcast, 1 handler
-  broadcast          lib/cantina/orders.ex:168               Cantina.Orders
-  handle_broadcast   lib/cantina_web/live/diner_live.ex:157  CantinaWeb.DinerLive
-```
+<span class="t-b">:ready</span>  1 broadcast, 1 handler
+  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:168               Cantina.Orders
+  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:157  CantinaWeb.DinerLive</code></pre>
 
 <!--
 Or you can get really fine grained and filter it by just the event on the topic as well.
