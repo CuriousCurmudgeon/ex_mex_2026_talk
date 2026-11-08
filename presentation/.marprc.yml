@@ -1,3 +1,5 @@
+# Marp only reads this file from the directory it runs in, so run it from
+# here: marp -s .
 html: true
 themeSet:
   - ./theme.css

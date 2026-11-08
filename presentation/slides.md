@@ -658,14 +658,14 @@ In this example, you can see this live view subscribes to a couple of topics tha
 <p class="where">Cantina.Orders</p>
 
 
-```elixir
+```elixir {1|}
 broadcast!(:tables, %{table_id: table_id}, :placed, %{
   order_id: order_id,
   line_items: line_items
 })
 ```
 
-```
+``` {1,7|}
 ** (CompileError) lib/cantina/orders.ex:96: unknown topic :tables in Cantina.Manifest.
 
 Declared topics:
@@ -693,14 +693,14 @@ The answer is that the manifest lets us do a lot. We can verify that the topic e
 <p class="where">Cantina.Orders</p>
 
 
-```elixir
+```elixir {1|}
 broadcast!(:table, %{table: table_id}, :placed, %{
   order_id: order_id,
   line_items: line_items
 })
 ```
 
-```
+``` {3-4|}
 ** (CompileError) lib/cantina/orders.ex:96: wrong params for topic :table.
 
   missing: [:table_id]
@@ -723,14 +723,14 @@ We can verify that the topic is given the correct params to be built. In this ex
 <p class="where">Cantina.Orders</p>
 
 
-```elixir
+```elixir {1|}
 broadcast!(:table, %{table_id: table_id}, :paid, %{
   order_id: order_id,
   line_items: line_items
 })
 ```
 
-```
+``` {1,3|}
 ** (CompileError) lib/cantina/orders.ex:96: unknown event :paid on topic :table (tables:<table_id>).
 
 Declared events: [:placed, :ready, :served]
@@ -750,7 +750,7 @@ We can verify that the message we're broadcasting exists in the manifest. There 
 <p class="where">Cantina.Orders</p>
 
 
-```elixir
+```elixir {4|}
 broadcast!(:table, %{table_id: table_id}, :placed, %{
   order_id: order_id,
   line_items: line_items,
@@ -758,7 +758,7 @@ broadcast!(:table, %{table_id: table_id}, :placed, %{
 })
 ```
 
-```
+``` {3|}
 ** (CompileError) lib/cantina/orders.ex:96: invalid payload for :table :placed.
 
   unexpected: [:tip]
@@ -782,11 +782,11 @@ We can verify that the payload of the message has the correct shape. The payload
 <p class="where">CantinaWeb.DinerLive</p>
 
 
-```elixir
+```elixir {1|}
 :ok = subscribe(:tables, %{table_id: table_id})
 ```
 
-```
+``` {1,7|}
 ** (CompileError) lib/cantina_web/live/diner_live.ex:13: unknown topic :tables in Cantina.Manifest.
 
 Declared topics:
@@ -809,11 +809,11 @@ We can verify that you are subscribing to a topic that exists in the manifest. J
 <p class="where">CantinaWeb.DinerLive</p>
 
 
-```elixir
+```elixir {1|}
 :ok = subscribe(:table, %{id: table_id})
 ```
 
-```
+``` {3-4|}
 ** (CompileError) lib/cantina_web/live/diner_live.ex:13: wrong params for topic :table.
 
   missing: [:table_id]
@@ -836,7 +836,7 @@ We can verify that you've passed the correct params to build the topic. In this 
 <p class="where">CantinaWeb.DinerLive</p>
 
 
-```elixir
+```elixir {1,6|}
 handle_broadcast :table, :placed, %{order_id: id, line_items: line_items}, socket do
   order = %{id: id, line_items: line_items, status: :placed}
   {:noreply, update(socket, :orders, &upsert(&1, order))}
@@ -847,7 +847,7 @@ handle_broadcast :table, :ready, %{order_id: id}, socket do
 end
 ```
 
-```
+``` {3|}
 ** (CompileError) lib/cantina_web/live/diner_live.ex:1: CantinaWeb.DinerLive subscribes to topics with events it does not account for:
 
   * :table, :served
