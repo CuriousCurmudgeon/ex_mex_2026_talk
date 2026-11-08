@@ -23,7 +23,7 @@ Usually, I start my talks by reminding everybody about the rule of two feet. If 
 
 # Brian Meeker
 
-GetThru
+Engineering Manager, GetThru
 
 <span class="accent">@brianmeeker.bsky.social</span>
 
@@ -989,6 +989,8 @@ This is a topic for stations in the kitchen. The list of stations is a list of a
 <div>
 
 # Brian Meeker
+
+Engineering Manager, GetThru
 
 <span class="accent">@brianmeeker.bsky.social</span>
 
