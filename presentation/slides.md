@@ -367,14 +367,10 @@ So I did that with a new library called verified_pubsub. This is an idea that ha
 
 ---
 
-<div class="columns">
+<div class="columns wide-left">
 <div>
 
-# The Graveyard of Good Ideas
-
-Quinn Wilton
-
-<span class="caption">ElixirConf US 2026</span>
+<img class="thumbnail" src="images/quinn-thumbnail.jpg" alt="Graveyard of Good Ideas, Quinn Wilton, ElixirConf US 2026">
 
 </div>
 <div class="center">

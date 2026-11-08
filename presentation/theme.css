@@ -144,6 +144,15 @@ section .columns {
   height: 100%;
 }
 
+section .columns.wide-left {
+  grid-template-columns: 3fr 2fr;
+}
+
+section .thumbnail {
+  width: 100%;
+  border-radius: 8px;
+}
+
 section .center {
   text-align: center;
 }
