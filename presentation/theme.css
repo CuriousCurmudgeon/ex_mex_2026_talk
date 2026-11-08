@@ -55,20 +55,25 @@ section .accent {
   color: var(--accent);
 }
 
-/* Code */
+/* Code
+ *
+ * Tuned for a projector: code sits on the white slide behind a border, and the
+ * syntax colors are dark and saturated so they survive a washed-out image.
+ */
 section pre {
-  background: var(--code-bg);
+  background: #ffffff;
+  border: 2px solid #c4c4c4;
   border-radius: 6px;
-  font-size: 24px;
-  line-height: 1.4;
+  font-size: 28px;
+  line-height: 1.35;
 }
 
 section.small-code pre {
-  font-size: 19px;
+  font-size: 24px;
 }
 
 section.tiny-code pre {
-  font-size: 16px;
+  font-size: 21px;
 }
 
 section code {
@@ -77,6 +82,45 @@ section code {
 
 section pre code {
   background: transparent;
+  color: var(--ink);
+}
+
+section pre .hljs-keyword,
+section pre .hljs-built_in,
+section pre .hljs-literal {
+  color: #a3001b;
+  font-weight: 600;
+}
+
+section pre .hljs-string,
+section pre .hljs-regexp {
+  color: #0a6b14;
+}
+
+section pre .hljs-symbol,
+section pre .hljs-attr,
+section pre .hljs-number {
+  color: #6a1b9a;
+}
+
+section pre .hljs-title,
+section pre .hljs-title.class_,
+section pre .hljs-title.function_ {
+  color: #0b4a9c;
+}
+
+section pre .hljs-comment {
+  color: #5c5c5c;
+  font-style: italic;
+}
+
+section pre .hljs-subst,
+section pre .hljs-variable,
+section pre .hljs-params,
+section pre .hljs-meta,
+section pre .hljs-operator,
+section pre .hljs-punctuation {
+  color: var(--ink);
 }
 
 section table {

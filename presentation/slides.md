@@ -244,8 +244,14 @@ if connected?(socket) do
   :ok = Cantina.PubSub.subscribe_menu()
   # ...
 end
+```
 
-# ...
+---
+
+<!-- _class: small-code -->
+
+```elixir
+# CantinaWeb.StationLive
 
 def handle_info({:fired, %{ticket: ticket}}, socket),
   do: {:noreply, put_ticket(socket, ticket)}
@@ -262,7 +268,7 @@ def handle_info({:bumped, %{ticket_id: id}}, socket),
 
 ---
 
-<!-- _class: tiny-code -->
+<!-- _class: small-code -->
 
 ```elixir
 defmodule Cantina.PubSub do
@@ -272,6 +278,16 @@ defmodule Cantina.PubSub do
           | {:released, %{ticket_id: String.t()}}
           | {:bumped, %{station: atom(), ticket_id: String.t(), cook_seconds: non_neg_integer()}}
 
+  # ...
+end
+```
+
+---
+
+<!-- _class: small-code -->
+
+```elixir
+defmodule Cantina.PubSub do
   def subscribe_station(station), do: subscribe(station_topic(station))
 
   @doc "A new ticket reached its station."
@@ -775,6 +791,18 @@ Subscribes (1)
   handle_broadcast   lib/cantina_web/live/diner_live.ex:152  CantinaWeb.DinerLive
 
 ...
+```
+
+<!--
+We can do that with `mix verified.pubsub.topics`
+-->
+
+---
+
+<!-- _class: tiny-code -->
+
+```
+...
 
 :station  stations:<station>
 
@@ -791,8 +819,6 @@ Subscribes (2)
 ```
 
 <!--
-We can do that with `mix verified.pubsub.topics`
-
 This mix task gives us all the topics in the app, where they are subscribed to, and a breakdown of usage of all the messages on each topic. We can see where each message is broadcast, handled, and ignored. You and the robot don't have to grep through your code anymore. The metadata is right there.
 -->
 
