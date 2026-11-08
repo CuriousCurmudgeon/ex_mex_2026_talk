@@ -140,7 +140,7 @@ Nobody knew. Nobody had decided what the behavior should be, so it was a combina
 
 <p class="where">Cantina.Orders · messy-pubsub</p>
 
-```elixir
+```elixir {4-8|}
 for ticket <- tickets do
   :ok = Kitchen.open(ticket)
 
@@ -172,7 +172,7 @@ Going down that path with our TexMex app, you can see how we broadcast tickets t
 
 <p class="where">CantinaWeb.StationLive · messy-pubsub</p>
 
-```elixir
+```elixir {2|}
 if connected?(socket) do
   Phoenix.PubSub.subscribe(Cantina.PubSub, "stations:#{station}")
   Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
@@ -193,7 +193,7 @@ Each kitchen station then subscribe to the topic for their station. Once again, 
 <p class="where">CantinaWeb.StationLive · messy-pubsub</p>
 
 
-```elixir
+```elixir {1|}
 def handle_info({:fired, ticket}, socket), do: {:noreply, put_ticket(socket, ticket)}
 
 def handle_info({:claimed, id, name}, socket) do
@@ -213,7 +213,7 @@ end
 ```
 
 <!--
-And then we handle those events with handle_info.
+And then we handle those events with handle_info. All of these are kitchen station events. You can see the :fired event we broadcast a couple slides ago here.
 
 This is about the most basic way to do pub/sub in an Elixir app. Just call functions on Phoenix Pub/Sub. And this can be fine! If your app is small, then you don't really need any more complexity. But when your app is larger, then this becomes unwieldy. It becomes difficult to keep track of your API for pub/sub. What topics does your app use? What is your preferred naming pattern for topics? What conventions do you want for the shape of payloads? What about the weight of those payloads? Should you pass around only ids around or should you pass around structs with more info?
 -->
@@ -242,7 +242,7 @@ Like us, when you start to do this you will probably start finding the source of
 
 <p class="where">Cantina.Orders · organized-pubsub</p>
 
-```elixir
+```elixir {3|}
 for ticket <- tickets do
   :ok = Kitchen.open(ticket)
   Cantina.PubSub.broadcast_fired(ticket)
@@ -264,7 +264,7 @@ So we centralized. Here's the same example from our Tex Mex sample app with this
 <p class="where">CantinaWeb.StationLive · organized-pubsub</p>
 
 
-```elixir
+```elixir {2|}
 if connected?(socket) do
   :ok = Cantina.PubSub.subscribe_station(station)
   :ok = Cantina.PubSub.subscribe_menu()
@@ -285,7 +285,7 @@ And here is how we subscribe to those topics then.
 <p class="where">CantinaWeb.StationLive · organized-pubsub</p>
 
 
-```elixir
+```elixir {1-2|}
 def handle_info({:fired, %{ticket: ticket}}, socket),
   do: {:noreply, put_ticket(socket, ticket)}
 
@@ -312,7 +312,7 @@ And how we handle them. This is just standard handle_info usage for pub/sub.
 <p class="where">Cantina.PubSub · organized-pubsub</p>
 
 
-```elixir
+```elixir {2|5-6}
 defmodule Cantina.PubSub do
   def subscribe_station(station), do: subscribe(station_topic(station))
 
@@ -347,7 +347,7 @@ But having consistency is only half the battle here. You've made it easier to fi
 
 <!-- _class: statement -->
 
-# Help you robot pal 🤖
+# Help your robot pal 🤖
 
 <!--
 With LLM's, we started improving things more with a style guide. We have guidance for how to document functions that broadcast on topics. We have guidance for how to document a module that subscribes to topics.
@@ -363,7 +363,7 @@ The robots are really good at this kind of thing. You can have reliable mix docs
 
 <p class="where">CantinaWeb.HomeLive</p>
 
-```elixir
+```elixir {8|}
 def handle_event("pick", %{"station" => station}, socket) do
   name =
     case String.trim(socket.assigns.form[:name].value || "") do
@@ -460,7 +460,7 @@ Verified routes derives valid routes through the router module. Let's look at wh
 <p class="where">Cantina.Manifest</p>
 
 
-```elixir
+```elixir {4|7,12,17|8-9,13-14,18}
 defmodule Cantina.Manifest do
   use VerifiedPubSub.Manifest, pubsub: Cantina.PubSub
 
@@ -521,7 +521,7 @@ This DSL uses Spark. It gives us the equivalent of a router module for pub/sub. 
 
 <p class="where">Cantina.Orders</p>
 
-```elixir
+```elixir {3|6-10}
 for ticket <- tickets do
   :ok = Kitchen.open(ticket)
   broadcast!(:station, %{station: ticket.station}, :fired, %{ticket: ticket})
@@ -547,7 +547,7 @@ We call broadcast with or without a bang. Looking at the second broadcast call h
 
 <p class="where">Cantina.Manifest</p>
 
-```elixir
+```elixir {1|2}
 topic :table, ["tables", :table_id] do
   message :placed do
     field :order_id, :string
@@ -587,7 +587,7 @@ That was an example for :table. Looking at a usage of :station -> :bumped, you c
 
 <p class="where">CantinaWeb.DinerLive</p>
 
-```elixir
+```elixir {3|8}
 defmodule CantinaWeb.DinerLive do
   use CantinaWeb, :live_view
   use VerifiedPubSub.Subscriber, manifest: Cantina.Manifest
@@ -647,6 +647,10 @@ ignore_broadcast :expo, :ticket_ready
 
 <!--
 In this example, you can see this live view subscribes to a couple of topics that have messages we don't actually care about in this case. We must explicitly handle or ignore every message on a topic though.
+
+That leads us into the fun parts though. The library is called verified_pubsub, but what can we actually verify with this?
+
+<Pause for suggestions>
 -->
 
 ---
@@ -676,11 +680,6 @@ Declared topics:
 ```
 
 <!--
-
-That leads us into the fun parts though. The library is called verified_pubsub, but what can we actually verify with this?
-
-<Pause for suggestions>
-
 The answer is that the manifest lets us do a lot. We can verify that the topic exists. Here we can see a typo. We try to broadcast on :tables, but the topic is :table.
 -->
 
