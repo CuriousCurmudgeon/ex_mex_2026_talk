@@ -236,3 +236,54 @@ section .caption {
   color: var(--muted);
   font-size: 26px;
 }
+
+/* Line highlights from engine.js. A highlighted line gets a light tint of the
+ * accent and a bar down its left edge, and the other lines of its block fade.
+ * A block with no current step stays at full strength. */
+/* Marp's auto-scaling wraps each block in an SVG exactly as wide as its
+ * longest line, and clips anything outside it. The minimum width stretches a
+ * full-width block's lines to the edge of the box, so the band spans it, and
+ * the bar sits inside each line's padding instead of a negative margin. */
+section pre code[data-hl] {
+  display: block;
+  min-width: 1088px;
+}
+
+section pre .hl-line {
+  display: block;
+  min-height: 1lh;
+  padding-left: 14px;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+section pre .hl-step {
+  display: none;
+}
+
+section pre .hl-line.hl-on,
+section pre:has(.hl-step[data-step="1"][data-bespoke-marp-current-fragment]) .hl-line.s1,
+section pre:has(.hl-step[data-step="2"][data-bespoke-marp-current-fragment]) .hl-line.s2,
+section pre:has(.hl-step[data-step="3"][data-bespoke-marp-current-fragment]) .hl-line.s3,
+section pre:has(.hl-step[data-step="4"][data-bespoke-marp-current-fragment]) .hl-line.s4,
+section pre:has(.hl-step[data-step="5"][data-bespoke-marp-current-fragment]) .hl-line.s5,
+section pre:has(.hl-step[data-step="6"][data-bespoke-marp-current-fragment]) .hl-line.s6,
+section pre:has(.hl-step[data-step="7"][data-bespoke-marp-current-fragment]) .hl-line.s7,
+section pre:has(.hl-step[data-step="8"][data-bespoke-marp-current-fragment]) .hl-line.s8 {
+  background: linear-gradient(to right, #c8102e 0 6px, rgba(200, 16, 46, 0.2) 6px);
+}
+
+section pre:has(code[data-hl="hl-static"]) .hl-line:not(.hl-on),
+section pre:has(.hl-step[data-bespoke-marp-current-fragment]) .hl-line {
+  opacity: 0.35;
+}
+
+section pre:has(.hl-step[data-step="1"][data-bespoke-marp-current-fragment]) .hl-line.s1,
+section pre:has(.hl-step[data-step="2"][data-bespoke-marp-current-fragment]) .hl-line.s2,
+section pre:has(.hl-step[data-step="3"][data-bespoke-marp-current-fragment]) .hl-line.s3,
+section pre:has(.hl-step[data-step="4"][data-bespoke-marp-current-fragment]) .hl-line.s4,
+section pre:has(.hl-step[data-step="5"][data-bespoke-marp-current-fragment]) .hl-line.s5,
+section pre:has(.hl-step[data-step="6"][data-bespoke-marp-current-fragment]) .hl-line.s6,
+section pre:has(.hl-step[data-step="7"][data-bespoke-marp-current-fragment]) .hl-line.s7,
+section pre:has(.hl-step[data-step="8"][data-bespoke-marp-current-fragment]) .hl-line.s8 {
+  opacity: 1;
+}
