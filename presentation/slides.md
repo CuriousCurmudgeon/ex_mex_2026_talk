@@ -12,8 +12,6 @@ Brian Meeker
 
 <!--
 Good morning everybody. Really excited to be here at ExMex.
-
-Even though this is a single track conference, I still want to encourage everybody to follow rule of two feet. If the content of this talk just isn't working for you, vote with your feet and go make better use of your time. I won't be offended. That goes for everybody watching on YouTube later too. The internet is vast and full of wonders. I can't compete with that.
 -->
 
 ---
@@ -43,6 +41,8 @@ My name is Brian Meeker. I've traveled here today from the far off lands of Indi
 I spend my work hours as the engineering manager at GetThru. Because of the upheaval in our industry over the past year, I still get to write code. Well, a robot writes code for me, but I still get to tell myself that I'm writing code.
 
 You can mostly find me these days on Bluesky. These slides are available on GitHub. That same QR code will be up at end as well. You don't have to rush to get it right now.
+
+Even though this is a single track conference, I still want to encourage everybody to follow rule of two feet. If the content of this talk just isn't working for you, vote with your feet and go make better use of your time. I won't be offended. That goes for everybody watching on YouTube later too. The internet is vast and full of wonders. I can't compete with that.
 -->
 
 ---
@@ -515,28 +515,36 @@ This DSL uses Spark. It gives us the equivalent of a router module for pub/sub. 
 
 ---
 
-<!-- _class: labeled -->
+<!-- _class: labeled small-code -->
 
 ## Broadcasting
 
 <p class="where">Cantina.Orders</p>
 
-```elixir {3|6-10}
-for ticket <- tickets do
-  :ok = Kitchen.open(ticket)
-  broadcast!(:station, %{station: ticket.station}, :fired, %{ticket: ticket})
-end
+```elixir {2|8|11-14}
+defmodule Cantina.Orders do
+  use VerifiedPubSub, manifest: Cantina.Manifest
 
-broadcast!(:table, %{table_id: table_id}, :placed, %{
-  order_id: order_id,
-  line_items: line_items
-})
+  # ...
+
+  for ticket <- tickets do
+    :ok = Kitchen.open(ticket)
+    broadcast!(:station, %{station: ticket.station}, :fired, %{ticket: ticket})
+  end
+
+  broadcast!(:table, %{table_id: table_id}, :placed, %{
+    order_id: order_id,
+    line_items: line_items
+  })
+end
 ```
 
 <!--
 How do we use it though? One of the design goals for this library was to make to make it as similar as possible to phoenix_pubsub, deviating only where it made sense.
 
-We call broadcast with or without a bang. Looking at the second broadcast call here, the :table atom matches the name of the topic in the manifest. The table_id is interpolated into the topic name, so we get something like "tables:42" again. After that is the name of the message, :placed in this case. Finally, there is the payload of the message itself. The manifest says the message has order_id and line_items fields, so we add those.
+One deviation is that we must use VerifiedPubSub and let it know the manifest we're using. You can have multiple manifests in your app, but you can only use one of them at a time in a module at the moment.
+
+Because we want to do compile-time validation, broadcast is a macro. Looking at the second broadcast call here, the :table atom matches the name of the topic in the manifest. The table_id is interpolated into the topic name, so we get something like "tables:42" again. After that is the name of the message, :placed in this case. Finally, there is the payload of the message itself. The manifest says the message has order_id and line_items fields, so we add those.
 -->
 
 ---
@@ -576,7 +584,7 @@ broadcast_from!(pid, :station, %{station: station}, :bumped, %{
 ```
 
 <!--
-That was an example for :table. Looking at a usage of :station -> :bumped, you can also call broadcast_from, with or without the bang.
+That was an example for :table. Looking at a usage of :station -> :bumped, you can also call broadcast_from. The API tries to look similar to the Phoenix Pub/Sub you're used to.
 -->
 
 ---
@@ -615,38 +623,24 @@ It looks pretty much like you would expect. We subscribe to the :table topic. A 
 
 ## Handling Messages
 
-<p class="where">CantinaWeb.DinerLive</p>
-
 ```elixir
 handle_broadcast :table, :ready, %{order_id: id}, socket do
   {:noreply, set_status(socket, id, :ready)}
 end
+
+ignore_broadcast :table, [:placed, :served]
 ```
 
 <!--
-Handling messages looks different though. Instead of handle_info, we use a handle_broadcast macro. Now, the previous broadcast and subscribe examples were also macros, but that was less obvious.
+Handling messages looks different though. Instead of handle_info, we use a handle_broadcast macro. It's macros all the way down.
 
 Here we see an example of handling the :ready event on the :table topic. This message has an order_id, which we pattern match.
 
 Now, I talked earlier about a philosophical disagreement on the team about how we handle unexpected events on a topic. verified_pubsub makes the choice that every message must be explicitly handled or ignored. You can choose to ignore with ignore_broadcast
--->
 
----
-
-<!-- _class: labeled -->
-
-## Handling Messages
-
-<p class="where">CantinaWeb.BoardLive</p>
-
-```elixir
-ignore_broadcast :station, [:claimed, :released]
-
-ignore_broadcast :expo, :ticket_ready
-```
-
-<!--
 In this example, you can see this live view subscribes to a couple of topics that have messages we don't actually care about in this case. We must explicitly handle or ignore every message on a topic though.
+
+Under the hood this gets converted into handle_info functions as you would expect. We're just building up metadata about usage during compilation.
 
 That leads us into the fun parts though. The library is called verified_pubsub, but what can we actually verify with this?
 
@@ -680,7 +674,7 @@ Declared topics:
 ```
 
 <!--
-The answer is that the manifest lets us do a lot. We can verify that the topic exists. Here we can see a typo. We try to broadcast on :tables, but the topic is :table.
+The combination of the manifest and macros over top the Phoenix pub/sub API lets us do a lot. We can verify that the topic exists. Here we can see a typo. We try to broadcast on :tables, but the topic is :table.
 -->
 
 ---
@@ -796,7 +790,7 @@ Declared topics:
 ```
 
 <!--
-We can verify that you are subscribing to a topic that exists in the manifest. Just like we tried to broadcast on :tables instead of :table, we've done the same here for subscribe.
+We can verify that you are subscribing to a topic that exists in the manifest. Just like we tried to broadcast on :tables instead of :table, we've done the same here for subscribe. That is a compilation error.
 -->
 
 ---
@@ -823,7 +817,9 @@ We can verify that you are subscribing to a topic that exists in the manifest. J
 ```
 
 <!--
-We can verify that you've passed the correct params to build the topic. In this case, we passed :id instead of :table_id. In all of these examples, you can see that the error message is pretty helpful. It tells you exactly what is wrong. And that means the compilation error tells your robot exactly what is wrong too.
+We can verify that you've passed the correct params to build the topic. In this case, we passed :id instead of :table_id. That is a compilation error.
+
+In all of these examples, you can see that the error message is pretty helpful. It tells you exactly what is wrong. And that means the compilation error tells your robot exactly what is wrong too.
 -->
 
 ---
@@ -857,7 +853,15 @@ Add a `handle_broadcast` clause for each, or dismiss it explicitly:
 ```
 
 <!--
-What if you don't handle a message on a topic? Compilation error. Here, we have an example of handling the :placed and :ready messages on :table. We don't handle or ignore :served though, so we get a compilation error.
+What if you don't handle a message on a topic? Here, we have an example of handling the :placed and :ready messages on :table. We don't handle or ignore :served though, so, everybody say it with me, we get a...
+-->
+
+---
+
+![bg contain](images/oprah_compilation_error.jpg)
+
+<!--
+<compilation error>. Everybody gets a compilation error. I love compilation errors. You know why? Because every compilation error is a runtime error I don't have to deal with later.
 
 A recurring pattern we see these days is that tools that are good for humans are also good for LLMs. This is yet another example. This validation is useful if I'm writing this code by hand or if the robot is writing it.
 -->
@@ -1069,7 +1073,9 @@ There is a hit on compilation times though.
 | 250    | 0.64 s | 23.1 s   | 22.3 s         | 3.6 MB         | 751 (23.5 s)                        |
 
 <!--
-You can see the entire cost is in the manifest. Editing the manifest is going to cause a recompilation penalty. I'm fine with that tradeoff. You can also see that the performance is not good as the number of topics in a single manifest grows. The library does support multiple manifests, but we haven't gotten to the point of using that at work yet. There will probably be refinements if/when we use it.
+You can see the entire cost is in the manifest. Editing the manifest is going to cause a recompilation penalty. I'm fine with that trade off in my projects.
+
+You can also see that the performance is not good as the number of topics in a single manifest grows. The library does support multiple manifests, but we haven't gotten to the point of using that at work yet. There will probably be refinements if/when we use it.
 
 Benchmarks like this are trivial to run now. With LLMs, there is no excuse to not be setting up benchmarks on your apps and libraries.
 
@@ -1152,9 +1158,9 @@ Engineering Manager, GetThru
 </div>
 
 <!--
-I really want to stress how easy it is to try out ideas like this now. It's easier than ever to create libraries like this. And it's easier than ever to fork libraries like this and customize them for your use. That doesn't come without cost, but the cost is much lower than it used to be.
-
 Giving your robot guardrails keeps them on task. The combination of compile-time verification, usage rules, and mix tasks make it very easy for robots to use even though nothing about this library is in its training data.
+
+I really want to stress how easy it is to try out ideas like this now. It's easier than ever to create libraries like this. And it's easier than ever to fork libraries like this and customize them for your use. That doesn't come without cost, but the cost is much lower than it used to be.
 
 Once again, I am Brian Meeker. If you want to contact me on the internet, your best bet is Bluesky. Thanks everybody for coming. Thanks to the ExMex organizer.
 -->
