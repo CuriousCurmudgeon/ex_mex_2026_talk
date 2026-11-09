@@ -77,7 +77,7 @@ Feel free to play around with this or pull down the code. It's all vibes and it 
 # Pub/Sub Spaghetti 🍝
 
 <!--
-What kind of messes can you make with pub/sub though? What pain points were we running into at work?
+Who here has worked on a heavily evented system where it was very difficult to track all the action at a distance?
 
 GetThru's code base recently passed the 10 year mark. I've worked on older code bases than this. I've been doing this a long time. But this is one of the older ones. And like most older code bases, a lot of people have worked on it over the years. Historically, we work in the election industry, so as election time approaches, there is pressure to rapidly address issues and add new features for important clients.
 -->
@@ -418,7 +418,7 @@ I watched her talk from knowing this was true. I had this idea for years that I 
 
 <!-- _class: statement -->
 
-# Pain is optional  
+# Be ambitious. You can build it  
 
 <!--
 If you take nothing else away from this talk, it should be this. Those pain points in your codebase can go away now. If it's a technical problem and you can articulate what properties you want the system or library to have, the robot can probably quickly build it for you. This is wild. The future is wild.
@@ -460,7 +460,7 @@ Verified routes derives valid routes through the router module. Let's look at wh
 <p class="where">Cantina.Manifest</p>
 
 
-```elixir {4|7,12,17|8-9,13-14,18}
+```elixir {4|7,12,17|8-9,14,18}
 defmodule Cantina.Manifest do
   use VerifiedPubSub.Manifest, pubsub: Cantina.PubSub
 
@@ -488,6 +488,8 @@ end
 Phoenix PubSub has no equivalent module to organize topics and messages, so we have to make our own. Enter the manifest module
 
 Manifest here means something like a shipping manifest. A shipping manifest lists everything and everybody on a ship. Here, we want to list all the topics, the messages on those topics, and the shape of the payload for those messages. Not quite a 1:1 mapping on to a shipping manifest, but the name works well enough.
+
+This DSL uses Spark. It gives us the equivalent of a router module for pub/sub. This lets us gather metadata for what every topic and message looks like, including the shape of the payload for each message.
 -->
 
 ---
@@ -509,8 +511,6 @@ topic :table, ["tables", :table_id]
 
 <!--
 Looking at the topic we have here, the first atom is a unique name for your topic. This is not the shape of the topic on the wire. That part is defined by the list. So, the topic on the wire ends up becoming something "tables:42", "tables:7", etc.
-
-This DSL uses Spark. It gives us the equivalent of a router module for pub/sub. This lets us gather metadata for what every topic and message looks like, including the shape of the payload for each message.
 -->
 
 ---
@@ -674,7 +674,7 @@ Declared topics:
 ```
 
 <!--
-The combination of the manifest and macros over top the Phoenix pub/sub API lets us do a lot. We can verify that the topic exists. Here we can see a typo. We try to broadcast on :tables, but the topic is :table.
+The combination of the manifest and macros over top the Phoenix pub/sub API lets us do a lot. We can verify that the topic exists. Here we can see a typo. We try to broadcast on :tables, but the topic is :table. That is a compilation error
 -->
 
 ---
@@ -704,7 +704,7 @@ broadcast!(:table, %{table: table_id}, :placed, %{
 ```
 
 <!--
-We can verify that the topic is given the correct params to be built. In this example, we've accidentally passed table instead of table_id
+We can verify that the topic is given the correct params to be built. In this example, we've accidentally passed table instead of table_id. That is a compilation error
 -->
 
 ---
