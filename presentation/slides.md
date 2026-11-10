@@ -45,7 +45,7 @@ I spend my work hours as the engineering manager at GetThru. Because of the uphe
 
 You can mostly find me these days on Bluesky. These slides are available on GitHub. That same QR code will be up at end as well. You don't have to rush to get it right now.
 
-Even though this is a single track conference, I still want to encourage everybody to follow rule of two feet. If the content of this talk just isn't working for you, vote with your feet and go make better use of your time. I won't be offended. That goes for everybody watching on YouTube later too. The internet is vast and full of wonders. I can't compete with that.
+Even though this is a single track conference, I still want to encourage everybody to take care of yourselves. If the content of this talk just isn't working for you, go make better use of your time. I won't be offended. That goes for everybody watching on YouTube later too. The internet is vast and full of wonders. I can't compete with that.
 -->
 
 ---
