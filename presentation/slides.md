@@ -421,7 +421,7 @@ I watched her talk already knowing this was true. I had this idea for years that
 # Be ambitious. You can build it  
 
 <!--
-If you take nothing else away from this talk, it should be this. Those pain points in your codebase can go away now. If it's a technical problem and you can articulate what properties you want the system or library to have, the robot can probably quickly build it for you. This is wild. The future is wild.
+If you take nothing else away from this talk, it should be this. Be ambitious. If your boss is not encouraging you to be ambitious, if your company is not giving you space to be ambitious, they are categorically wrong. If it's a technical problem and you can articulate what properties you want the system or library to have, the robot can probably quickly build it for you. If you can't articulate those things, you can explore the design space more quickly.
 
 As I walk through this library, let your mind wander. You may not like my solution to this problem. If you can articulate what you don't like about it, you can quickly generate your own solution. Maybe you don't like my API. Maybe you don't like the dependency on Spark. Whatever it is, you can talk to me. And if my spongey brain matter disagrees with your spongey brain matter, it's trivial to fork my version or build your own.
 -->
@@ -1138,6 +1138,24 @@ I expect the API to be a bit in flux as that happens. I think the core is pretty
 
 ---
 
+<!-- _class: statement -->
+
+# Be ambitious. You can build it
+
+<!--
+Remember the worst bug we found when we started centralizing? Three different rarely used live views that all broadcast the same event on the same topic, but all three of them sent a differently shaped payload. It was never a priority to dig into our error tracker and figure it out. Today, that is a compilation error.
+
+You don't need my library to start getting there. Start centralizing. Decide what your rules are. Nobody had decided for us, so we had a combination of all of them. Then make the compiler enforce them.
+
+Giving your robot guardrails keeps them on task. The combination of compile-time verification, usage rules, and mix tasks make it very easy for robots to use even though nothing about this library is in its training data.
+
+I really want to stress how easy it is to try out ideas like this now. It's easier than ever to create libraries like this. And it's easier than ever to fork libraries like this and customize them for your use. That doesn't come without cost, but the cost is much lower than it used to be.
+
+So what is the pub/sub in your codebase? What pain point has everybody just put up with for years? If you can articulate what properties you want the system to have, the robot can probably quickly build it for you. Be ambitious. You can build it.
+-->
+
+---
+
 <div class="columns">
 <div>
 
@@ -1158,9 +1176,5 @@ Engineering Manager, GetThru
 </div>
 
 <!--
-Giving your robot guardrails keeps them on task. The combination of compile-time verification, usage rules, and mix tasks make it very easy for robots to use even though nothing about this library is in its training data.
-
-I really want to stress how easy it is to try out ideas like this now. It's easier than ever to create libraries like this. And it's easier than ever to fork libraries like this and customize them for your use. That doesn't come without cost, but the cost is much lower than it used to be.
-
-Once again, I am Brian Meeker. If you want to contact me on the internet, your best bet is Bluesky. Thanks everybody for coming. Thanks to the ExMex organizer.
+Once again, I am Brian Meeker. If you want to contact me on the internet, your best bet is Bluesky. Thanks everybody for coming. Thanks to the ExMex organizer. Do we have time for questions?
 -->
