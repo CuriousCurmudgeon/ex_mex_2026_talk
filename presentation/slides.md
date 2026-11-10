@@ -12,7 +12,9 @@ paginate: false
 Brian Meeker
 
 <!--
-Good morning everybody. Really excited to be here at ExMex. We're going to be talking about pub/sub today. Before we get started, I must admit that I made a terrible mistake when submitting this talk.
+Good morning everybody. Really excited to be here at ExMex. My name is Brian Meeker. I've traveled here today from the far off lands of Indiana. This is my first time stepping foot in Texas outside of an airport.
+
+We're going to be talking about pub/sub today. Before we get started, I must admit that I made a terrible mistake when submitting this talk.
 
 <click> In honor of ExMex, it clearly should have been pub/sub nachos. On a plate of good nachos, you can't pick up a chip without disturbing at least three others and getting a random assortment of toppings in each bite.
 -->
@@ -39,8 +41,6 @@ Engineering Manager, GetThru
 </div>
 
 <!--
-My name is Brian Meeker. I've traveled here today from the far off lands of Indiana. This is my first time stepping foot in Texas outside of an airport.
-
 I spend my work hours as the engineering manager at GetThru. Because of the upheaval in our industry over the past year, I still get to write code. Well, a robot writes code for me, but I still get to tell myself that I'm writing code.
 
 You can mostly find me these days on Bluesky. These slides are available on GitHub. That same QR code will be up at end as well. You don't have to rush to get it right now.
@@ -630,7 +630,7 @@ It looks pretty much like you would expect. We subscribe to the :table topic. A 
 
 ## Handling Messages
 
-```elixir
+```elixir {1-3|5}
 handle_broadcast :table, :ready, %{order_id: id}, socket do
   {:noreply, set_status(socket, id, :ready)}
 end
@@ -693,9 +693,9 @@ $ mix phx.routes
 ```
 
 <!--
-One thing we also struggled with previously was finding out where and how pub/sub was being used. Centralizing usage of pub/sub to a single module helped, but this helps a lot more.
+One thing we also struggled with previously was finding out where and how pub/sub was being used. Centralizing usage of pub/sub to a single module helped, but it was only a start.
 
-Robots are great with grep, but we can do better than that. We already have a manifest and a boatload of macros. What if we tracked metadata about usage of pub/sub at compile time to give us something like `mix phx.routes`?
+Robots are great with grep, but we can do better than that. We already have a manifest and a boatload of macros. What if we tracked metadata about usage of pub/sub at compile time to give us something like `mix phx.routes`? And then we put some instructions in the usage_rules for how to use that metadata?
 -->
 
 ---
@@ -1150,15 +1150,15 @@ I expect the API to be a bit in flux as that happens. I think the core is pretty
 # Be ambitious. You can build it
 
 <!--
-Remember the worst bug we found when we started centralizing? Three different rarely used live views that all broadcast the same event on the same topic, but all three of them sent a differently shaped payload. It was never a priority to dig into our error tracker and figure it out. Today, that is a compilation error.
+I talked about the bug we found with three different rarely used live views that all subscribed to the same event on the same topic, but all three of them expected a differently shaped payload from background jobs. It was never a priority to dig into our error tracker and figure it out. Today, that would be a compilation error.
 
-You don't need my library to start getting there. Start centralizing. Decide what your rules are. Nobody had decided for us, so we had a combination of all of them. Then make the compiler enforce them.
+But you don't need verified_pubsub to start getting there. Start centralizing. Decide what your guidelines are. Standardize. Nobody had decided for us, so we had a combination of all of them.
 
-Giving your robot guardrails keeps them on task. The combination of compile-time verification, usage rules, and mix tasks make it very easy for robots to use even though nothing about this library is in its training data.
+Giving your robot guardrails keeps them on task. verified_pubsub is a useful guardrail. The combination of compile-time verification, usage rules, and mix tasks make it very easy for robots to use even though nothing about this library is in its training data.
 
-I really want to stress how easy it is to try out ideas like this now. It's easier than ever to create libraries like this. And it's easier than ever to fork libraries like this and customize them for your use. That doesn't come without cost, but the cost is much lower than it used to be.
+It is so easy to try out ideas like this now. It's easier than ever to create libraries like this. And it's easier than ever to fork libraries like this and customize them for your use. That doesn't come without cost, but the cost is much lower than it used to be.
 
-So what is the pub/sub in your codebase? What pain point has everybody just put up with for years? If you can articulate what properties you want the system to have, the robot can probably quickly build it for you. Be ambitious. You can build it.
+So what does the pub/sub look like in your codebase? What pain point has everybody just put up with for years? If you can articulate what properties you want the system to have, the robot can probably quickly build it for you. Be ambitious. You can build it.
 -->
 
 ---
@@ -1183,5 +1183,5 @@ Engineering Manager, GetThru
 </div>
 
 <!--
-Once again, I am Brian Meeker. If you want to contact me on the internet, your best bet is Bluesky. Thanks everybody for coming. Thanks to the ExMex organizer. Do we have time for questions?
+Once again, I am Brian Meeker. If you want to contact me on the internet, your best bet is Bluesky. Thanks everybody for coming. Thanks to the ExMex team for putting all of this together. Do we have time for questions?
 -->
