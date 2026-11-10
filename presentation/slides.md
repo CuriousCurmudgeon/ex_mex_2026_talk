@@ -1,17 +1,20 @@
 ---
 marp: true
+title: Preventing Pub/Sub Spaghetti in Event-Driven Systems
 theme: bare
 paginate: false
 ---
 
 <!-- _class: title statement -->
 
-# Preventing Pub/Sub Spaghetti in Event-Driven Systems
+# Preventing Pub/Sub <span class="swap"><span class="old">Spaghetti</span><span class="new" data-marpit-fragment>Nachos</span></span> in Event-Driven Systems
 
 Brian Meeker
 
 <!--
 Good morning everybody. Really excited to be here at ExMex.
+
+<click> In honor of ExMex, today we're calling it pub/sub nachos.
 -->
 
 ---
@@ -74,7 +77,7 @@ Feel free to play around with this or pull down the code. It's all vibes and it 
 
 <!-- _class: statement -->
 
-# Pub/Sub Spaghetti 🍝
+# Pub/Sub Nachos 🧀
 
 <!--
 Who here has worked on a heavily evented system where it was very difficult to track all the action at a distance?
@@ -340,7 +343,7 @@ The helper functions themselves are straightforward. They just call broadcast an
 
 And they don't have to live in the PubSub module. Maybe in your app it makes more sense for them to live in various context modules. That's fine. As long as you know where they are and can easily find your topics, events, and payloads, you're making progress.
 
-But having consistency is only half the battle here. You've made it easier to find the surface area of your pub/sub API. It won't be a big ball of mud anymore, but it might still be a plate of spaghetti. That is way more appetizing than a big ball of mud at least.
+But having consistency is only half the battle here. You've made it easier to find the surface area of your pub/sub API. It won't be a big ball of mud anymore, but it might still be a plate of nachos. That is way more appetizing than a big ball of mud at least.
 -->
 
 ---

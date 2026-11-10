@@ -339,3 +339,65 @@ section:has(.hl-step[data-step="7"][data-bespoke-marp-current-fragment]) table:h
 section:has(.hl-step[data-step="8"][data-bespoke-marp-current-fragment]) table:has(.hl-row) tr:not(:has(.hl-row[data-step="8"])) td {
   opacity: 0.35;
 }
+
+/* A copy editor's correction on the title slide. On the click, a red pen line
+ * strikes the old word, then the new word is written in above it, left to
+ * right. The new word floats above the line, so nothing else moves. A static
+ * export (PDF, PNG) has no fragments, so it shows the end state.
+ *   <span class="swap"><span class="old">Spaghetti</span><span class="new"
+ *   data-marpit-fragment>Nachos</span></span> */
+section .swap {
+  position: relative;
+  display: inline-block;
+}
+
+section .swap .old {
+  position: relative;
+}
+
+section .swap .old::after {
+  content: "";
+  position: absolute;
+  left: -0.06em;
+  right: -0.06em;
+  top: 52%;
+  height: 0.07em;
+  border-radius: 0.04em;
+  background: var(--accent);
+  transform: rotate(-2deg);
+  transform-origin: left center;
+}
+
+section .swap .new {
+  position: absolute;
+  left: 50%;
+  bottom: 78%;
+  font-size: 0.8em;
+  color: var(--accent);
+  white-space: nowrap;
+  transform: translateX(-50%) rotate(-4deg);
+}
+
+/* Before the click, the line and the new word are gone. */
+section .swap:has(.new[data-bespoke-marp-fragment="inactive"]) .old::after {
+  visibility: hidden;
+}
+
+/* On the click, the pen strikes, then writes. */
+section .swap:has(.new[data-bespoke-marp-fragment="active"]) .old::after {
+  animation: swap-strike 0.35s ease-out both;
+}
+
+section .swap .new[data-bespoke-marp-fragment="active"] {
+  animation: swap-write 0.5s ease-in-out 0.35s both;
+}
+
+@keyframes swap-strike {
+  from { transform: rotate(-2deg) scaleX(0); }
+  to { transform: rotate(-2deg) scaleX(1); }
+}
+
+@keyframes swap-write {
+  from { clip-path: inset(-0.2em 100% -0.2em -0.2em); }
+  to { clip-path: inset(-0.2em -0.2em -0.2em -0.2em); }
+}
