@@ -669,6 +669,166 @@ a topic that a manifest declares:
 
 <!--
 The library includes usage_rules. If you pull those in, your LLM will know how to use the library. For example, there is a section describing how you should not bypass the manifest.
+-->
+
+---
+
+<!-- _class: labeled small-code -->
+
+## Mix Task
+
+
+```
+$ mix phx.routes
+
+  GET   /                    CantinaWeb.HomeLive nil
+  GET   /t/:table_id         CantinaWeb.DinerLive nil
+  GET   /kitchen/:station    CantinaWeb.StationLive nil
+  GET   /expo                CantinaWeb.ExpoLive nil
+  GET   /board               CantinaWeb.BoardLive nil
+  ...
+```
+
+<!--
+One thing we also struggled with previously was finding out where and how pub/sub was being used. Centralizing usage of pub/sub to a single module helped, but this helps a lot more.
+
+Robots are great with grep, but we can do better than that. We already have a manifest and a boatload of macros. What if we tracked metadata about usage of pub/sub at compile time to give us something like `mix phx.routes`?
+-->
+
+---
+
+<!-- _class: labeled tiny-code -->
+
+## Mix Task
+
+
+<pre class="term"><code>$ mix verified_pubsub.topics
+
+<span class="t-b">Cantina.Manifest</span>
+
+<span class="t-b t-cyn">:table</span>  tables:&lt;table_id&gt;
+
+Subscribes (1)
+  <span class="t-mag">subscribe</span>          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
+
+<span class="t-b">:placed</span>  1 broadcast, 1 handler
+  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:96                Cantina.Orders
+  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:152  CantinaWeb.DinerLive
+
+...</code></pre>
+
+<!--
+We can do that and make use of it with `mix verified_pubsub.topics`
+-->
+
+---
+
+<!-- _class: labeled tiny-code -->
+
+## Mix Task
+
+
+<pre class="term"><code>...
+
+<span class="t-b t-cyn">:station</span>  stations:&lt;station&gt;
+
+Subscribes (2)
+  <span class="t-mag">subscribe</span>          lib/cantina_web/live/board_live.ex:20     CantinaWeb.BoardLive
+  <span class="t-mag">subscribe</span>          lib/cantina_web/live/station_live.ex:30   CantinaWeb.StationLive
+
+<span class="t-b">:claimed</span>  1 broadcast, 1 handler, 1 ignore
+  <span class="t-grn">broadcast</span>          lib/cantina/kitchen.ex:107                Cantina.Kitchen
+  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/station_live.ex:151  CantinaWeb.StationLive
+  <span class="t-dim">ignore_broadcast</span>   lib/cantina_web/live/board_live.ex:190    CantinaWeb.BoardLive
+
+...</code></pre>
+
+<!--
+This mix task gives us all the topics in the app, where they are subscribed to, and a breakdown of usage of all the messages on each topic. We can see where each message is broadcast, handled, and ignored. You and the robot don't have to grep through your code anymore. The metadata is right there.
+-->
+
+---
+
+<!-- _class: labeled tiny-code -->
+
+## Mix Task
+
+
+<pre class="term"><code>$ mix verified_pubsub.topics table
+
+<span class="t-b">Cantina.Manifest</span>
+
+<span class="t-b t-cyn">:table</span>  tables:&lt;table_id&gt;
+
+Subscribes (1)
+  <span class="t-mag">subscribe</span>          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
+
+<span class="t-b">:placed</span>  1 broadcast, 1 handler
+  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:96                Cantina.Orders
+  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:152  CantinaWeb.DinerLive
+
+<span class="t-b">:ready</span>  1 broadcast, 1 handler
+  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:168               Cantina.Orders
+  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:157  CantinaWeb.DinerLive
+
+<span class="t-b">:served</span>  1 broadcast, 1 handler
+  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:109               Cantina.Orders
+  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:161  CantinaWeb.DinerLive</code></pre>
+
+<!--
+And you can filter it as well. If you want to see all the usage of a particular topic, pass the name of the topic.
+-->
+
+---
+
+<!-- _class: labeled tiny-code -->
+
+## Mix Task
+
+
+<pre class="term"><code>$ mix verified_pubsub.topics table ready
+
+<span class="t-b">Cantina.Manifest</span>
+
+<span class="t-b t-cyn">:table</span>  tables:&lt;table_id&gt;
+
+Subscribes (1)
+  <span class="t-mag">subscribe</span>          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
+
+<span class="t-b">:ready</span>  1 broadcast, 1 handler
+  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:168               Cantina.Orders
+  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:157  CantinaWeb.DinerLive</code></pre>
+
+<!--
+Or you can get really fine grained and filter it by just the event on the topic as well.
+-->
+
+---
+
+<!-- _class: labeled tiny-code -->
+
+## Mix Task
+
+
+```
+$ mix verified_pubsub.topics table --format json
+
+{"manifests":[{"module":"Cantina.Manifest","topics":[{"name":"table","wire":"tables:<table_id>",
+"counts":{"broadcast":3,"handle":3,"ignore":0,"subscribe":1},"subscribes":[{"kind":"subscribe",
+"file":"lib/cantina_web/live/diner_live.ex","line":13,"module":"CantinaWeb.DinerLive"}],"events":
+[{"name":"placed","counts":{"broadcast":1,"handle":1,"ignore":0},"call_sites":[{"kind":"broadcast",
+"file":"lib/cantina/orders.ex","line":96,"module":"Cantina.Orders"},{"kind":"handle","file":
+"lib/cantina_web/live/diner_live.ex","line":152,"module":"CantinaWeb.DinerLive"}]},{"name":"ready",
+"counts":{"broadcast":1,"handle":1,"ignore":0},"call_sites":[{"kind":"broadcast","file":
+"lib/cantina/orders.ex","line":168,"module":"Cantina.Orders"},{"kind":"handle","file":
+"lib/cantina_web/live/diner_live.ex","line":157,"module":"CantinaWeb.DinerLive"}]},{"name":"served",
+"counts":{"broadcast":1,"handle":1,"ignore":0},"call_sites":[{"kind":"broadcast","file":
+"lib/cantina/orders.ex","line":109,"module":"Cantina.Orders"},{"kind":"handle","file":
+"lib/cantina_web/live/diner_live.ex","line":161,"module":"CantinaWeb.DinerLive"}]}]}]}]}
+```
+
+<!--
+Or maybe you want something a little more machine friendly. You can get the results as unformatted json as well. Just pipe it into jq or your favorite tool for additional munging.
 
 That leads us into the fun parts though. The library is called verified_pubsub, but what can we actually verify with this?
 
@@ -892,166 +1052,6 @@ What if you don't handle a message on a topic? Here, we have an example of handl
 <compilation error>. Everybody gets a compilation error. I love compilation errors. You know why? Because every compilation error is a runtime error I don't have to deal with later.
 
 A recurring pattern we see these days is that tools that are good for humans are also good for LLMs. This is yet another example. This validation is useful if I'm writing this code by hand or if the robot is writing it.
--->
-
----
-
-<!-- _class: labeled small-code -->
-
-## Mix Task
-
-
-```
-$ mix phx.routes
-
-  GET   /                    CantinaWeb.HomeLive nil
-  GET   /t/:table_id         CantinaWeb.DinerLive nil
-  GET   /kitchen/:station    CantinaWeb.StationLive nil
-  GET   /expo                CantinaWeb.ExpoLive nil
-  GET   /board               CantinaWeb.BoardLive nil
-  ...
-```
-
-<!--
-One thing we also struggled with previously was finding out where and how pub/sub was being used. Centralizing usage of pub/sub to a single module helped, but this helps a lot more.
-
-Robots are great with grep, but we can do better than that. We already have a manifest and a boatload of macros. What if we tracked metadata about usage of pub/sub at compile time to give us something like `mix phx.routes`?
--->
-
----
-
-<!-- _class: labeled tiny-code -->
-
-## Mix Task
-
-
-<pre class="term"><code>$ mix verified_pubsub.topics
-
-<span class="t-b">Cantina.Manifest</span>
-
-<span class="t-b t-cyn">:table</span>  tables:&lt;table_id&gt;
-
-Subscribes (1)
-  <span class="t-mag">subscribe</span>          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
-
-<span class="t-b">:placed</span>  1 broadcast, 1 handler
-  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:96                Cantina.Orders
-  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:152  CantinaWeb.DinerLive
-
-...</code></pre>
-
-<!--
-We can do that and make use of it with `mix verified_pubsub.topics`
--->
-
----
-
-<!-- _class: labeled tiny-code -->
-
-## Mix Task
-
-
-<pre class="term"><code>...
-
-<span class="t-b t-cyn">:station</span>  stations:&lt;station&gt;
-
-Subscribes (2)
-  <span class="t-mag">subscribe</span>          lib/cantina_web/live/board_live.ex:20     CantinaWeb.BoardLive
-  <span class="t-mag">subscribe</span>          lib/cantina_web/live/station_live.ex:30   CantinaWeb.StationLive
-
-<span class="t-b">:claimed</span>  1 broadcast, 1 handler, 1 ignore
-  <span class="t-grn">broadcast</span>          lib/cantina/kitchen.ex:107                Cantina.Kitchen
-  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/station_live.ex:151  CantinaWeb.StationLive
-  <span class="t-dim">ignore_broadcast</span>   lib/cantina_web/live/board_live.ex:190    CantinaWeb.BoardLive
-
-...</code></pre>
-
-<!--
-This mix task gives us all the topics in the app, where they are subscribed to, and a breakdown of usage of all the messages on each topic. We can see where each message is broadcast, handled, and ignored. You and the robot don't have to grep through your code anymore. The metadata is right there.
--->
-
----
-
-<!-- _class: labeled tiny-code -->
-
-## Mix Task
-
-
-<pre class="term"><code>$ mix verified_pubsub.topics table
-
-<span class="t-b">Cantina.Manifest</span>
-
-<span class="t-b t-cyn">:table</span>  tables:&lt;table_id&gt;
-
-Subscribes (1)
-  <span class="t-mag">subscribe</span>          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
-
-<span class="t-b">:placed</span>  1 broadcast, 1 handler
-  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:96                Cantina.Orders
-  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:152  CantinaWeb.DinerLive
-
-<span class="t-b">:ready</span>  1 broadcast, 1 handler
-  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:168               Cantina.Orders
-  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:157  CantinaWeb.DinerLive
-
-<span class="t-b">:served</span>  1 broadcast, 1 handler
-  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:109               Cantina.Orders
-  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:161  CantinaWeb.DinerLive</code></pre>
-
-<!--
-And you can filter it as well. If you want to see all the usage of a particular topic, pass the name of the topic.
--->
-
----
-
-<!-- _class: labeled tiny-code -->
-
-## Mix Task
-
-
-<pre class="term"><code>$ mix verified_pubsub.topics table ready
-
-<span class="t-b">Cantina.Manifest</span>
-
-<span class="t-b t-cyn">:table</span>  tables:&lt;table_id&gt;
-
-Subscribes (1)
-  <span class="t-mag">subscribe</span>          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
-
-<span class="t-b">:ready</span>  1 broadcast, 1 handler
-  <span class="t-grn">broadcast</span>          lib/cantina/orders.ex:168               Cantina.Orders
-  <span class="t-mag">handle_broadcast</span>   lib/cantina_web/live/diner_live.ex:157  CantinaWeb.DinerLive</code></pre>
-
-<!--
-Or you can get really fine grained and filter it by just the event on the topic as well.
--->
-
----
-
-<!-- _class: labeled tiny-code -->
-
-## Mix Task
-
-
-```
-$ mix verified_pubsub.topics table --format json
-
-{"manifests":[{"module":"Cantina.Manifest","topics":[{"name":"table","wire":"tables:<table_id>",
-"counts":{"broadcast":3,"handle":3,"ignore":0,"subscribe":1},"subscribes":[{"kind":"subscribe",
-"file":"lib/cantina_web/live/diner_live.ex","line":13,"module":"CantinaWeb.DinerLive"}],"events":
-[{"name":"placed","counts":{"broadcast":1,"handle":1,"ignore":0},"call_sites":[{"kind":"broadcast",
-"file":"lib/cantina/orders.ex","line":96,"module":"Cantina.Orders"},{"kind":"handle","file":
-"lib/cantina_web/live/diner_live.ex","line":152,"module":"CantinaWeb.DinerLive"}]},{"name":"ready",
-"counts":{"broadcast":1,"handle":1,"ignore":0},"call_sites":[{"kind":"broadcast","file":
-"lib/cantina/orders.ex","line":168,"module":"Cantina.Orders"},{"kind":"handle","file":
-"lib/cantina_web/live/diner_live.ex","line":157,"module":"CantinaWeb.DinerLive"}]},{"name":"served",
-"counts":{"broadcast":1,"handle":1,"ignore":0},"call_sites":[{"kind":"broadcast","file":
-"lib/cantina/orders.ex","line":109,"module":"Cantina.Orders"},{"kind":"handle","file":
-"lib/cantina_web/live/diner_live.ex","line":161,"module":"CantinaWeb.DinerLive"}]}]}]}]}
-```
-
-<!--
-Or maybe you want something a little more machine friendly. You can get the results as unformatted json as well. Just pipe it into jq or your favorite tool for additional munging.
 -->
 
 ---
