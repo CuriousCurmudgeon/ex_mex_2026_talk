@@ -63,9 +63,9 @@ Even though this is a single track conference, I still want to encourage everybo
 </div>
 
 <!--
-Today we're going to be talk about pub/sub. We'll talk about what we get out of the box with Phoenix Pub/Sub. We'll talk about the kinds of messes you can make with this. And then we'll talk about how we can layer compile-time guarantees on top of pub/sub to help out both human and LLM-assisted development. Because, at least for the current time being, most things you do to make development better for humans also happen to make it better for robots as well.
+Today we're going to talk about pub/sub. We'll talk about what we get out of the box with Phoenix Pub/Sub. We'll talk about the kinds of messes you can make with this. And then we'll talk about how we can layer compile-time guarantees on top of pub/sub to help out both human and LLM-assisted development. Because, at least for the current time being, most things you do to make development better for humans also happen to make it better for robots as well.
 
-All code examples today are pulled from the demo app in the git repo. We're at ExMex, so what better way to walk through our examples than with a demo app for a Tex Mex restaraunt. You can find it at https://texmex.fly.dev/
+All code examples today are pulled from the demo app in the git repo. We're at ExMex, so what better way to walk through our examples than with a demo app for a Tex Mex restaurant. You can find it at https://texmex.fly.dev/
 
 Feel free to play around with this or pull down the code. It's all vibes and it makes good use of pub/sub to broadcast events as orders are put in and they are handled by the back of house. You can place orders or get a job.
 -->
@@ -87,9 +87,9 @@ GetThru's code base recently passed the 10 year mark. I've worked on older code 
 ![bg contain](images/anakin_padme_clean_it_up.jpg)
 
 <!--
-And then the promised time to clean it up later would rarely materialize This combination of many hands and time pressure does not lead to great solutions. Our pub/sub usage had grown haphazardly this entire time. It had never been seriously refactored.
+And then the promised time to clean it up later would rarely materialize. This combination of many hands and time pressure does not lead to great solutions. Our pub/sub usage had grown haphazardly this entire time. It had never been seriously refactored.
 
-This mean that nothing was centralized. Every module directly used the functions exposed in the default Pub/Sub module you get with a new Phoenix app. In many ways, this is similar to the context module problem. People see what the generator gives them out of the box and just assume that is how it needs to stay. It's not.
+This meant that nothing was centralized. Every module directly used the functions exposed in the default Pub/Sub module you get with a new Phoenix app. In many ways, this is similar to the context module problem. People see what the generator gives them out of the box and just assume that is how it needs to stay. It's not.
 
 Are there any old Rails devs in the room? Or maybe veterans of other frameworks that are very opinionated and magical? Have you ever worked on teams where most of them are afraid to change the structure of anything that came out of the box? Rails apps that have no concept of code living somewhere other than a model, view, or controller? I do not have a lot of professional Rails experience and even I have seen this.
 -->
@@ -181,7 +181,7 @@ end
 ```
 
 <!--
-Each kitchen station then subscribe to the topic for their station. Once again, directly calling the Phoenix PubSub API.
+Each kitchen station then subscribes to the topic for their station. Once again, directly calling the Phoenix PubSub API.
 -->
 
 ---
@@ -215,7 +215,7 @@ end
 <!--
 And then we handle those events with handle_info. All of these are kitchen station events. You can see the :fired event we broadcast a couple slides ago here.
 
-This is about the most basic way to do pub/sub in an Elixir app. Just call functions on Phoenix Pub/Sub. And this can be fine! If your app is small, then you don't really need any more complexity. But when your app is larger, then this becomes unwieldy. It becomes difficult to keep track of your API for pub/sub. What topics does your app use? What is your preferred naming pattern for topics? What conventions do you want for the shape of payloads? What about the weight of those payloads? Should you pass around only ids around or should you pass around structs with more info?
+This is about the most basic way to do pub/sub in an Elixir app. Just call functions on Phoenix Pub/Sub. And this can be fine! If your app is small, then you don't really need any more complexity. But when your app is larger, then this becomes unwieldy. It becomes difficult to keep track of your API for pub/sub. What topics does your app use? What is your preferred naming pattern for topics? What conventions do you want for the shape of payloads? What about the weight of those payloads? Should you pass around only ids or should you pass around structs with more info?
 -->
 
 ---
@@ -378,7 +378,7 @@ end
 <!--
 This is all well and good, but we can do better. I'm a big fan of verified routes in Phoenix. Here we can see an example of one in use in a handle_event function. Users pick what kitchen station they want to work in and we push_navigate them there.
 
-Verified PubSub uses the router as a DSL to build up a data structure of valid routes in our application. It gives you compile-time validation that the routes you're using are correct.
+Verified routes uses the router as a DSL to build up a data structure of valid routes in our application. It gives you compile-time validation that the routes you're using are correct.
 
 What if we did the same thing for pub/sub? Can we enforce compile-time validation that you're broadcasting and subscribing to documented topics? Can we guarantee that a module handles all events on a topic? What about the shape of the message payload? What would we need to do that?
 -->
@@ -411,7 +411,7 @@ So I did that with a new library called verified_pubsub. This is an idea that ha
 <!--
 But we have LLMs now. Quinn Wilton's talk at ElixirConf US this year has really stuck with me. The barrier between that idea in your head and a working implementation has never been smaller. Quinn was talking about really ambitious projects that previously would have taken hundreds or thousands of hours to implement. They may have needed an entire team all putting in those kinds of hours. LLMs have changed that calculus.
 
-I watched her talk from knowing this was true. I had this idea for years that I had not been able to justify spending the time on. But I had vibe coded an initial version of verified_pubsub in 4-5 hours a few Sundays before ElixirConf while doing other work around my house.
+I watched her talk already knowing this was true. I had this idea for years that I had not been able to justify spending the time on. But I had vibe coded an initial version of verified_pubsub in 4-5 hours a few Sundays before ElixirConf while doing other work around my house.
 -->
 
 ---
@@ -540,7 +540,7 @@ end
 ```
 
 <!--
-How do we use it though? One of the design goals for this library was to make to make it as similar as possible to phoenix_pubsub, deviating only where it made sense.
+How do we use it though? One of the design goals for this library was to make it as similar as possible to phoenix_pubsub, deviating only where it made sense.
 
 One deviation is that we must use VerifiedPubSub and let it know the manifest we're using. You can have multiple manifests in your app, but you can only use one of them at a time in a module at the moment.
 
@@ -565,7 +565,7 @@ end
 ```
 
 <!--
-As a reminder, here is the section from the manifest for just this event. We see the topic is :tables and the message is :placed. The payload for :placed has an order_id and line_items.
+As a reminder, here is the section from the manifest for just this event. We see the topic is :table and the message is :placed. The payload for :placed has an order_id and line_items.
 -->
 
 ---
@@ -913,7 +913,7 @@ Subscribes (1)
 ...</code></pre>
 
 <!--
-We can do that and make use of it with `mix verified.pubsub.topics`
+We can do that and make use of it with `mix verified_pubsub.topics`
 -->
 
 ---
@@ -1051,11 +1051,11 @@ end
 | <span class="hl-row" data-step="1"></span>`{:list, :string}` field, 100,000 elements    | 0.53 µs | 606 µs   |
 
 <!--
-Does all of this have any performance cost? At runtime, no. The only check that cannot be done at compile time is the types on fields in a message
+Does all of this have any performance cost? At runtime, barely. The only check that cannot be done at compile time is the types on fields in a message
 
 These types must be checked at runtime. That's pretty low.
 
-You can see here that we're talking about microseconds. Now, if you start broadasting large lists over pub/sub, that does get into hundreds of microseconds, but that is not a use case that I have seen. I haven't worked on an app that sends messages that heavy.
+You can see here that we're talking about microseconds. Now, if you start broadcasting large lists over pub/sub, that does get into hundreds of microseconds, but that is not a use case that I have seen. I haven't worked on an app that sends messages that heavy.
 
 There is a hit on compilation times though.
 -->
