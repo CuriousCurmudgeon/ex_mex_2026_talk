@@ -641,6 +641,30 @@ Now, I talked earlier about a philosophical disagreement on the team about how w
 In this example, you can see this live view subscribes to a couple of topics that have messages we don't actually care about in this case. We must explicitly handle or ignore every message on a topic though.
 
 Under the hood this gets converted into handle_info functions as you would expect. We're just building up metadata about usage during compilation.
+-->
+
+---
+
+<!-- _class: labeled small-code -->
+
+## Usage Rules
+
+<p class="where">AGENTS.md</p>
+
+```markdown
+## Never bypass the manifest for a declared topic
+
+The checks work only when each broadcast and subscription goes through the manifest. For
+a topic that a manifest declares:
+
+- Do not call `Phoenix.PubSub.broadcast/3`, `subscribe/2` or a similar function on it
+  directly. Do not build its wire topic by hand. Use the macros below.
+- Do not write `handle_info/2` clauses that match `%VerifiedPubSub.Message{}`. Use
+  `handle_broadcast`.
+```
+
+<!--
+The library includes usage_rules. If you pull those in, your LLM will know how to use the library. For example, there is a section describing how you should not bypass the manifest.
 
 That leads us into the fun parts though. The library is called verified_pubsub, but what can we actually verify with this?
 
