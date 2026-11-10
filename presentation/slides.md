@@ -1133,31 +1133,7 @@ Where do we go from here? This library is in production at work. It is not being
 
 We continue to run into topics and messages with inconsistent shapes. It's very clear that there were no guiding principles here.
 
-I expect the API to be a bit in flux as that happens. I think the core is pretty set now, but edge cases will come up that need to be addressed. For example, while putting together this demo app a case came up that we could verify at compile-time that the library didn't support yet.
--->
-
----
-
-<!-- _class: labeled -->
-
-## Verifying topics restricted to certain atoms
-
-```elixir
-# Cantina.Manifest
-
-topic :station, ["stations", :station] do
-  # ...
-end
-```
-
-```elixir
-# Cantina.Menu
-
-@stations [:grill, :fryer, :bar]
-```
-
-<!--
-This is a topic for stations in the kitchen. The list of stations is a list of atoms known at compile-time. It could be a compile-time error if you try to use value not in that list for :station. I haven't ported anything like this in our app yet, so I haven't gotten to it.
+I expect the API to be a bit in flux as that happens. I think the core is pretty set now, but edge cases will come up that need to be addressed.
 -->
 
 ---
