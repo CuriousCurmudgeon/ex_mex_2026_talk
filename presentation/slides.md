@@ -12,9 +12,9 @@ paginate: false
 Brian Meeker
 
 <!--
-Good morning everybody. Really excited to be here at ExMex.
+Good morning everybody. Really excited to be here at ExMex. We're going to be talking about pub/sub today. Before we get started, I must admit that I made a terrible mistake when submitting this talk.
 
-<click> In honor of ExMex, today we're calling it pub/sub nachos.
+<click> In honor of ExMex, it clearly should have been pub/sub nachos. On a plate of good nachos, you can't pick up a chip without disturbing at least three others and getting a random assortment of toppings in each bite.
 -->
 
 ---
@@ -77,7 +77,7 @@ Feel free to play around with this or pull down the code. It's all vibes and it 
 
 <!-- _class: statement -->
 
-# Pub/Sub Nachos 🧀
+# Action at a distance
 
 <!--
 Who here has worked on a heavily evented system where it was very difficult to track all the action at a distance?
