@@ -238,6 +238,27 @@ section .qr {
   height: 320px;
 }
 
+/* A small QR code pinned to the bottom-right corner, out of the way of a
+ * centered slide. */
+section .corner-qr {
+  position: absolute;
+  right: 48px;
+  bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+section .corner-qr .qr {
+  width: 180px;
+  height: 180px;
+}
+
+section .corner-qr .caption {
+  font-size: 22px;
+}
+
 section .caption {
   color: var(--muted);
   font-size: 26px;

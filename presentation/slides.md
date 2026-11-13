@@ -11,10 +11,15 @@ paginate: false
 
 Brian Meeker
 
-<!--
-Good morning everybody. Really excited to be here at ExMex. My name is Brian Meeker. I've traveled here today from the far off lands of Indiana. This is my first time stepping foot in Texas outside of an airport.
+<div class="corner-qr">
+<img class="qr" src="images/qr-texmex.svg" alt="QR code to texmex.fly.dev">
+<span class="caption">texmex.fly.dev</span>
+</div>
 
-We're going to be talking about pub/sub today. Before we get started, I must admit that I made a terrible mistake when submitting this talk.
+<!--
+Good morning everybody. I'm really happy to be here today. I am not a local. I came in from Indiana. This is my first trip to Texas and I've had a great time meeting so many of you.
+
+We're going to be talking about pub/sub today. There is a demo app that I'll be referencing at texmex.fly.dev. The QR code will take you there. Before we get started, I must admit that I made a terrible mistake when submitting this talk.
 
 <click> In honor of ExMex, it clearly should have been pub/sub nachos. On a plate of good nachos, you can't pick up a chip without disturbing at least three others and getting a random assortment of toppings in each bite.
 -->
