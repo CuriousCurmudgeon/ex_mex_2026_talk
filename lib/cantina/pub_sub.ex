@@ -12,8 +12,8 @@ defmodule Cantina.PubSub do
 
   | Topic | Subscribe | Messages |
   |---|---|---|
-  | `"tables:<table_id>"` | `subscribe_table/1` | `:placed`, `:ready`, `:served` |
-  | `"stations:<station>"` | `subscribe_station/1` | `:fired`, `:claimed`, `:released`, `:bumped` |
+  | `"table:<table_id>"` | `subscribe_table/1` | `:placed`, `:ready`, `:served` |
+  | `"station:<station>"` | `subscribe_station/1` | `:fired`, `:claimed`, `:released`, `:bumped` |
   | `"expo"` | `subscribe_expo/0` | `:ticket_ready`, `:order_complete` |
   | `"menu"` | `subscribe_menu/0` | `:special_added` |
   | `"presence:diners"` | `subscribe_diners/0` | `Phoenix.Presence` diffs |
@@ -49,7 +49,7 @@ defmodule Cantina.PubSub do
   def broadcast_served(table_id, order_id),
     do: broadcast(table_topic(table_id), {:served, %{order_id: order_id}})
 
-  defp table_topic(table_id), do: "tables:#{table_id}"
+  defp table_topic(table_id), do: "table:#{table_id}"
 
   ## Station: the tickets of one kitchen station.
 
@@ -95,7 +95,7 @@ defmodule Cantina.PubSub do
       else: broadcast(station_topic(station), message)
   end
 
-  defp station_topic(station) when is_atom(station), do: "stations:#{station}"
+  defp station_topic(station) when is_atom(station), do: "station:#{station}"
 
   ## Expo: tickets that are ready to plate and run.
 
