@@ -9,9 +9,9 @@ defmodule Cantina.ServiceTest do
   # Places an order with one grill item and one bar item. Returns the order and its tickets.
   defp place_order(table_id) do
     for station <- ["grill", "bar"],
-        do: Phoenix.PubSub.subscribe(Cantina.PubSub, "stations:" <> station)
+        do: Phoenix.PubSub.subscribe(Cantina.PubSub, "station:" <> station)
 
-    Phoenix.PubSub.subscribe(Cantina.PubSub, "tables:#{table_id}")
+    Phoenix.PubSub.subscribe(Cantina.PubSub, "table:#{table_id}")
 
     {:ok, order} = Orders.place(table_id, %{"carne-asada-tacos" => 2, "horchata" => "1"})
 

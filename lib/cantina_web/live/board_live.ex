@@ -17,7 +17,7 @@ defmodule CantinaWeb.BoardLive do
       Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
 
       for station <- Menu.stations(),
-          do: Phoenix.PubSub.subscribe(Cantina.PubSub, "stations:" <> to_string(station))
+          do: Phoenix.PubSub.subscribe(Cantina.PubSub, "station:" <> to_string(station))
 
       Phoenix.PubSub.subscribe(Cantina.PubSub, "presence:diners")
       Phoenix.PubSub.subscribe(Cantina.PubSub, "presence:cooks")

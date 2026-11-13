@@ -26,7 +26,7 @@ defmodule CantinaWeb.StationLive do
        |> push_navigate(to: ~p"/")}
     else
       if connected?(socket) do
-        Phoenix.PubSub.subscribe(Cantina.PubSub, "stations:#{station}")
+        Phoenix.PubSub.subscribe(Cantina.PubSub, "station:#{station}")
         Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
         {:ok, _ref} = Presence.track_cook(self(), station, name)
         :timer.send_interval(1_000, :tick)

@@ -9,7 +9,7 @@ defmodule CantinaWeb.DinerLive do
   @impl true
   def mount(%{"table_id" => table_id}, _session, socket) do
     if connected?(socket) do
-      :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, "tables:" <> table_id)
+      :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, "table:" <> table_id)
       :ok = Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
       {:ok, _ref} = Presence.track_diner(self(), table_id)
     end
