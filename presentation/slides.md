@@ -80,7 +80,7 @@ Feel free to play around with this or pull down the code. It's all vibes and it 
 # Action at a distance
 
 <!--
-Who here has worked on a heavily evented system where it was very difficult to track all the action at a distance?
+Who likes Phoenix Pub/Sub? Raise your hands. It's not a trick question. Now, who is confident that there pub/sub is all wired up correctly? It's hard. There is a lot of action at a distance happening.
 
 GetThru's code base recently passed the 10 year mark. I've worked on older code bases than this. I've been doing this a long time. But this is one of the older ones. And like most older code bases, a lot of people have worked on it over the years. Historically, we work in the election industry, so as election time approaches, there is pressure to rapidly address issues and add new features for important clients.
 -->
@@ -90,33 +90,13 @@ GetThru's code base recently passed the 10 year mark. I've worked on older code 
 ![bg contain](images/anakin_padme_clean_it_up.jpg)
 
 <!--
-And then the promised time to clean it up later would rarely materialize. This combination of many hands and time pressure does not lead to great solutions. Our pub/sub usage had grown haphazardly this entire time. It had never been seriously refactored.
+And then the promised time to clean it up later would rarely materialize. This combination of many hands and time pressure does not lead to great solutions. Our pub/sub usage would sprawl haphazardly during these pushes. It had never been seriously refactored.
 
-This meant that nothing was centralized. Every module directly used the functions exposed in the default Pub/Sub module you get with a new Phoenix app. In many ways, this is similar to the context module problem. People see what the generator gives them out of the box and just assume that is how it needs to stay. It's not.
+In our case, this meant that nothing was centralized. Every module directly used the functions exposed in the default Pub/Sub module you get with a new Phoenix app. In many ways, this is similar to the context module problem. People see what the generator gives them out of the box and just assume that is how it needs to stay. It's not.
+
+In the case of pub/sub though, the current Phoenix generators are much better though now. I was going to complain about them until I generated a new app and saw that they put the broadcast and subscribe functions directly in the context module now. This was part of adding scopes in 1.8
 
 Are there any old Rails devs in the room? Or maybe veterans of other frameworks that are very opinionated and magical? Have you ever worked on teams where most of them are afraid to change the structure of anything that came out of the box? Rails apps that have no concept of code living somewhere other than a model, view, or controller? I do not have a lot of professional Rails experience and even I have seen this.
--->
-
----
-
-<!-- _class: statement -->
-
-# Be the change you want to see
-
-<!--
-It doesn't have to be that way though! Phoenix is not that magical. That pub/sub module that got generated? It's not magic. You can add functions to it. You can move it wherever you want!
-
-For example, I think that it's silly to have the generated pub/sub module be in the web project for a new app. Now my business layer needs to take a dependency on something in the web layer. That's wrong. Move it. Module names and directories have no meaning in Elixir. Move them where ever you want!
--->
-
----
-
-<!-- _class: statement -->
-
-# Code generators are merely a suggestion
-
-<!--
-Code generators are merely a suggestion for how to get started. You don't have to stick with just that. Constraints are great when getting started. I'm a firm believer in the aphorism that constraints breed creativity. Generators help with the blank page problem. But after that they are merely a suggestion.
 -->
 
 ---
@@ -218,7 +198,9 @@ end
 <!--
 And then we handle those events with handle_info. All of these are kitchen station events. You can see the :fired event we broadcast a couple slides ago here.
 
-This is about the most basic way to do pub/sub in an Elixir app. Just call functions on Phoenix Pub/Sub. And this can be fine! If your app is small, then you don't really need any more complexity. But when your app is larger, then this becomes unwieldy. It becomes difficult to keep track of your API for pub/sub. What topics does your app use? What is your preferred naming pattern for topics? What conventions do you want for the shape of payloads? What about the weight of those payloads? Should you pass around only ids or should you pass around structs with more info?
+This is about the most basic way to do pub/sub in an Elixir app. There was a generated wrapper module, but it didn't do anything else.  Pre 1.8, this was pretty much how it worked. Just call functions on Phoenix Pub/Sub.
+
+And this can be fine! If your app is small, then you don't really need any more complexity. But when your app is larger, then this becomes unwieldy. It becomes difficult to keep track of your API for pub/sub. What topics does your app use? What is your preferred naming pattern for topics? What conventions do you want for the shape of payloads? What about the weight of those payloads? Should you pass around only ids or should you pass around structs with more info?
 -->
 
 ---
