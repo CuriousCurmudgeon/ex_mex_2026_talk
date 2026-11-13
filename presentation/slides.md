@@ -141,7 +141,7 @@ end
 
 Phoenix.PubSub.broadcast(
   Cantina.PubSub,
-  "tables:#{table_id}",
+  "table:#{table_id}",
   {:placed, order_id, line_items}
 )
 ```
@@ -472,7 +472,7 @@ Verified routes derives valid routes through the router module. Let's look at wh
 defmodule Cantina.Manifest do
   use VerifiedPubSub.Manifest, pubsub: Cantina.PubSub
 
-  topic :table, ["tables", :table_id] do
+  topic :table, ["table", :table_id] do
     description "The status of the orders of one table."
 
     message :placed do
@@ -509,15 +509,15 @@ This DSL uses Spark. It gives us the equivalent of a router module for pub/sub. 
 <p class="where">Cantina.Manifest</p>
 
 <div class="topic-wire">
-<pre><code>topic <span class="hljs-symbol">:table</span>, [<span class="tw-part hljs-string">"tables"</span>, <span class="tw-swap"><span class="tw-old hljs-symbol">:table_id</span><span class="tw-new tw-part hljs-number" data-marpit-fragment>42</span></span>]</code></pre>
+<pre><code>topic <span class="hljs-symbol">:table</span>, [<span class="tw-part hljs-string">"table"</span>, <span class="tw-swap"><span class="tw-old hljs-symbol">:table_id</span><span class="tw-new tw-part hljs-number" data-marpit-fragment>42</span></span>]</code></pre>
 <div class="tw-result" data-marpit-fragment>
 <div class="tw-arrow">↓</div>
-<pre><code><span class="hljs-string">"<span class="tw-part">tables</span>:<span class="tw-part">42</span>"</span></code></pre>
+<pre><code><span class="hljs-string">"<span class="tw-part">table</span>:<span class="tw-part">42</span>"</span></code></pre>
 </div>
 </div>
 
 <!--
-Looking at the topic we have here, the first atom is a unique name for your topic. This is not the shape of the topic on the wire. That part is defined by the list. So, the topic on the wire ends up becoming something "tables:42"
+Looking at the topic we have here, the first atom is a unique name for your topic. This is not the shape of the topic on the wire. That part is defined by the list. So, the topic on the wire ends up becoming something "table:42"
 -->
 
 ---
@@ -551,7 +551,7 @@ How do we use it though? One of the design goals for this library was to make it
 
 One deviation is that we must use VerifiedPubSub and let it know the manifest we're using. You can have multiple manifests in your app, but you can only use one of them at a time in a module at the moment.
 
-Because we want to do compile-time validation, broadcast is a macro. Looking at the second broadcast call here, the :table atom matches the name of the topic in the manifest. The table_id is interpolated into the topic name, so we get something like "tables:42" again. After that is the name of the message, :placed in this case. Finally, there is the payload of the message itself. The manifest says the message has order_id and line_items fields, so we add those.
+Because we want to do compile-time validation, broadcast is a macro. Looking at the second broadcast call here, the :table atom matches the name of the topic in the manifest. The table_id is interpolated into the topic name, so we get something like "table:42" again. After that is the name of the message, :placed in this case. Finally, there is the payload of the message itself. The manifest says the message has order_id and line_items fields, so we add those.
 -->
 
 ---
@@ -563,7 +563,7 @@ Because we want to do compile-time validation, broadcast is a macro. Looking at 
 <p class="where">Cantina.Manifest</p>
 
 ```elixir {1|2}
-topic :table, ["tables", :table_id] do
+topic :table, ["table", :table_id] do
   message :placed do
     field :order_id, :string
     field :line_items, {:list, Cantina.LineItem}
@@ -709,7 +709,7 @@ Robots are great with grep, but we can do better than that. We already have a ma
 
 <span class="t-b">Cantina.Manifest</span>
 
-<span class="t-b t-cyn">:table</span>  tables:&lt;table_id&gt;
+<span class="t-b t-cyn">:table</span>  table:&lt;table_id&gt;
 
 Subscribes (1)
   <span class="t-mag">subscribe</span>          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
@@ -761,7 +761,7 @@ This mix task gives us all the topics in the app, where they are subscribed to, 
 
 <span class="t-b">Cantina.Manifest</span>
 
-<span class="t-b t-cyn">:table</span>  tables:&lt;table_id&gt;
+<span class="t-b t-cyn">:table</span>  table:&lt;table_id&gt;
 
 Subscribes (1)
   <span class="t-mag">subscribe</span>          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
@@ -793,7 +793,7 @@ And you can filter it as well. If you want to see all the usage of a particular 
 
 <span class="t-b">Cantina.Manifest</span>
 
-<span class="t-b t-cyn">:table</span>  tables:&lt;table_id&gt;
+<span class="t-b t-cyn">:table</span>  table:&lt;table_id&gt;
 
 Subscribes (1)
   <span class="t-mag">subscribe</span>          lib/cantina_web/live/diner_live.ex:13   CantinaWeb.DinerLive
@@ -816,7 +816,7 @@ Or you can get really fine grained and filter it by just the event on the topic 
 ```
 $ mix verified_pubsub.topics table --format json
 
-{"manifests":[{"module":"Cantina.Manifest","topics":[{"name":"table","wire":"tables:<table_id>",
+{"manifests":[{"module":"Cantina.Manifest","topics":[{"name":"table","wire":"table:<table_id>",
 "counts":{"broadcast":3,"handle":3,"ignore":0,"subscribe":1},"subscribes":[{"kind":"subscribe",
 "file":"lib/cantina_web/live/diner_live.ex","line":13,"module":"CantinaWeb.DinerLive"}],"events":
 [{"name":"placed","counts":{"broadcast":1,"handle":1,"ignore":0},"call_sites":[{"kind":"broadcast",
@@ -861,7 +861,7 @@ Declared topics:
   :expo      expo                 lib/cantina/manifest.ex:52
   :menu      menu                 lib/cantina/manifest.ex:65
   :station   stations:<station>   lib/cantina/manifest.ex:29
-  :table     tables:<table_id>    lib/cantina/manifest.ex:11
+  :table     table:<table_id>     lib/cantina/manifest.ex:11
 ```
 
 <!--
@@ -890,7 +890,7 @@ broadcast!(:table, %{table: table_id}, :placed, %{
   missing: [:table_id]
   unexpected: [:table]
 
-:table is tables:<table_id>, so it takes exactly [:table_id].
+:table is table:<table_id>, so it takes exactly [:table_id].
 :table is declared at lib/cantina/manifest.ex:11.
 ```
 
@@ -915,7 +915,7 @@ broadcast!(:table, %{table_id: table_id}, :paid, %{
 ```
 
 ``` {1,3|}
-** (CompileError) lib/cantina/orders.ex:96: unknown event :paid on topic :table (tables:<table_id>).
+** (CompileError) lib/cantina/orders.ex:96: unknown event :paid on topic :table (table:<table_id>).
 
 Declared events: [:placed, :ready, :served]
 :table is declared at lib/cantina/manifest.ex:11.
@@ -977,7 +977,7 @@ Declared topics:
   :expo      expo                 lib/cantina/manifest.ex:52
   :menu      menu                 lib/cantina/manifest.ex:65
   :station   stations:<station>   lib/cantina/manifest.ex:29
-  :table     tables:<table_id>    lib/cantina/manifest.ex:11
+  :table     table:<table_id>     lib/cantina/manifest.ex:11
 ```
 
 <!--
@@ -1003,7 +1003,7 @@ We can verify that you are subscribing to a topic that exists in the manifest. J
   missing: [:table_id]
   unexpected: [:id]
 
-:table is tables:<table_id>, so it takes exactly [:table_id].
+:table is table:<table_id>, so it takes exactly [:table_id].
 :table is declared at lib/cantina/manifest.ex:11.
 ```
 

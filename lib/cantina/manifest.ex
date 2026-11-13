@@ -8,7 +8,7 @@ defmodule Cantina.Manifest do
 
   use VerifiedPubSub.Manifest, pubsub: Cantina.PubSub
 
-  topic :table, ["tables", :table_id] do
+  topic :table, ["table", :table_id] do
     description "The status of the orders of one table."
 
     message :placed do
