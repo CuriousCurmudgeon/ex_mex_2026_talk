@@ -238,11 +238,11 @@ section .qr {
   height: 320px;
 }
 
-/* A small QR code pinned to the bottom-right corner, out of the way of a
- * centered slide. */
+/* A small QR code pinned to the bottom-left corner, out of the way of a
+ * centered slide. The bottom-right corner is the nacho plate's. */
 section .corner-qr {
   position: absolute;
-  right: 48px;
+  left: 48px;
   bottom: 40px;
   display: flex;
   flex-direction: column;
@@ -512,4 +512,33 @@ section .tw-part {
 
 section .topic-wire:has(.tw-result:not([data-bespoke-marp-fragment="inactive"])) .tw-part {
   background: rgba(200, 16, 46, 0.18);
+}
+
+/* A plate of nachos in the bottom-right corner that gets eaten as the talk
+ * goes. engine.js draws the plate into each slide with the chips and toppings
+ * still left at that point in the deck. */
+section .nachos {
+  position: absolute;
+  right: 40px;
+  bottom: 16px;
+  width: 170px;
+  height: 102px;
+  pointer-events: none;
+}
+
+/* On the title slide, the plate is served on the same click that writes in
+ * "Nachos", once the word is down: it slides in from off the right edge and
+ * slows to a stop, with no overshoot, the way a plate set on a table would.
+ * A static export shows it in place. */
+section.title:has(.swap .new[data-bespoke-marp-fragment="inactive"]) .nachos {
+  visibility: hidden;
+}
+
+section.title:has(.swap .new[data-bespoke-marp-fragment="active"]) .nachos {
+  animation: nacho-serve 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) 0.9s both;
+}
+
+@keyframes nacho-serve {
+  from { transform: translateX(260px); }
+  to { transform: none; }
 }
