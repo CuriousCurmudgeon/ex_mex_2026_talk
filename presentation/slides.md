@@ -370,6 +370,20 @@ What if we did the same thing for pub/sub? Can we enforce compile-time validatio
 
 ---
 
+<!-- _class: statement warning -->
+
+# Content warning
+
+<p class="warning-topic" data-marpit-fragment>Gratuitous use of macros</p>
+
+<!--
+First, one quick content warning. I've never felt the need for a content warning in a talk, but I don't want anybody to be surprised. This is compile-time verification.
+
+There will be gratuitous use of macros.
+-->
+
+---
+
 <!-- _class: statement -->
 
 # verified_pubsub
@@ -379,7 +393,7 @@ What if we did the same thing for pub/sub? Can we enforce compile-time validatio
 <span class="caption">hex.pm/packages/verified_pubsub</span>
 
 <!--
-So I did that with a new library called verified_pubsub. This is an idea that had been percolating in the back of my mind for the past two years. The problem was that I'm a very mediocre programmer with macros. I had never tried anything this complicated. I knew I could figure it out, but I also wasn't willing to spend a bunch of evenings and weekends working on it. I have hobbies. I have kids. I enjoy programming, but I'm not the kind of guy who's interested in spending many of his nights and weekends working on these things.
+Those macros exist in a new library called verified_pubsub. This is an idea that had been percolating in the back of my mind for the past two years. The problem was that I'm a very mediocre programmer with macros. I had never tried anything this complicated. I knew I could figure it out, but I also wasn't willing to spend a bunch of evenings and weekends working on it. I have hobbies. I have kids. I enjoy programming, but I'm not the kind of guy who's interested in spending many of his nights and weekends working on these things.
 -->
 
 ---
