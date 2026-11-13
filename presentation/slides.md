@@ -19,7 +19,9 @@ Brian Meeker
 <!--
 Good morning everybody. I'm really happy to be here today. I am not a local. I came in from Indiana. This is my first trip to Texas and I've had a great time meeting so many of you.
 
-We're going to be talking about pub/sub today. There is a demo app that I'll be referencing at texmex.fly.dev. The QR code will take you there. Before we get started, I must admit that I made a terrible mistake when submitting this talk.
+Last time I gave a talk was in January and I was talking about unionization in tech. And then I started getting rejected from every conference. I was starting to get a bit worried that I was being blackballed in some way. So, thanks to ExMex for letting a rabble rouser up on stage. We're not here to talk about unions though.
+
+We're here to talk about pub/sub today. There is a demo app that I'll be referencing at texmex.fly.dev. The QR code will take you there. Before we get started, I must admit that I made a terrible mistake when submitting this talk.
 
 <click> In honor of ExMex, it clearly should have been pub/sub nachos. On a plate of good nachos, you can't pick up a chip without disturbing at least three others and getting a random assortment of toppings in each bite.
 -->
