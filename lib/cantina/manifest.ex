@@ -26,7 +26,7 @@ defmodule Cantina.Manifest do
     end
   end
 
-  topic :station, ["stations", :station] do
+  topic :station, ["station", :station] do
     description "The tickets of one kitchen station: grill, fryer, or bar."
 
     message :fired do

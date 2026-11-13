@@ -134,7 +134,7 @@ for ticket <- tickets do
 
   Phoenix.PubSub.broadcast(
     Cantina.PubSub,
-    "stations:#{ticket.station}",
+    "station:#{ticket.station}",
     {:fired, ticket}
   )
 end
@@ -162,7 +162,7 @@ Going down that path with our TexMex app, you can see how we broadcast tickets t
 
 ```elixir {2|}
 if connected?(socket) do
-  Phoenix.PubSub.subscribe(Cantina.PubSub, "stations:#{station}")
+  Phoenix.PubSub.subscribe(Cantina.PubSub, "station:#{station}")
   Phoenix.PubSub.subscribe(Cantina.PubSub, "menu")
   # ...
 end
@@ -318,7 +318,7 @@ defmodule Cantina.PubSub do
         {:claimed, %{ticket_id: ticket_id, cook_name: cook_name}}
       )
 
-  defp station_topic(station) when is_atom(station), do: "stations:#{station}"
+  defp station_topic(station) when is_atom(station), do: "station:#{station}"
 
   defp subscribe(topic), do: Phoenix.PubSub.subscribe(@server, topic)
   defp broadcast(topic, message), do: Phoenix.PubSub.broadcast(@server, topic, message)
@@ -733,7 +733,7 @@ We can do that and make use of it with `mix verified_pubsub.topics`
 
 <pre class="term"><code>...
 
-<span class="t-b t-cyn">:station</span>  stations:&lt;station&gt;
+<span class="t-b t-cyn">:station</span>  station:&lt;station&gt;
 
 Subscribes (2)
   <span class="t-mag">subscribe</span>          lib/cantina_web/live/board_live.ex:20     CantinaWeb.BoardLive
@@ -858,10 +858,10 @@ broadcast!(:tables, %{table_id: table_id}, :placed, %{
 ** (CompileError) lib/cantina/orders.ex:96: unknown topic :tables in Cantina.Manifest.
 
 Declared topics:
-  :expo      expo                 lib/cantina/manifest.ex:52
-  :menu      menu                 lib/cantina/manifest.ex:65
-  :station   stations:<station>   lib/cantina/manifest.ex:29
-  :table     table:<table_id>     lib/cantina/manifest.ex:11
+  :expo      expo                lib/cantina/manifest.ex:52
+  :menu      menu                lib/cantina/manifest.ex:65
+  :station   station:<station>   lib/cantina/manifest.ex:29
+  :table     table:<table_id>    lib/cantina/manifest.ex:11
 ```
 
 <!--
@@ -974,10 +974,10 @@ We can verify that the payload of the message has the correct shape. The payload
 ** (CompileError) lib/cantina_web/live/diner_live.ex:13: unknown topic :tables in Cantina.Manifest.
 
 Declared topics:
-  :expo      expo                 lib/cantina/manifest.ex:52
-  :menu      menu                 lib/cantina/manifest.ex:65
-  :station   stations:<station>   lib/cantina/manifest.ex:29
-  :table     table:<table_id>     lib/cantina/manifest.ex:11
+  :expo      expo                lib/cantina/manifest.ex:52
+  :menu      menu                lib/cantina/manifest.ex:65
+  :station   station:<station>   lib/cantina/manifest.ex:29
+  :table     table:<table_id>    lib/cantina/manifest.ex:11
 ```
 
 <!--
