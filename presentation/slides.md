@@ -508,17 +508,16 @@ This DSL uses Spark. It gives us the equivalent of a router module for pub/sub. 
 
 <p class="where">Cantina.Manifest</p>
 
-```elixir
-topic :table, ["tables", :table_id]
-```
-
-```
-"tables:42"
-"tables:7"
-```
+<div class="topic-wire">
+<pre><code>topic <span class="hljs-symbol">:table</span>, [<span class="tw-part hljs-string">"tables"</span>, <span class="tw-swap"><span class="tw-old hljs-symbol">:table_id</span><span class="tw-new tw-part hljs-number" data-marpit-fragment>42</span></span>]</code></pre>
+<div class="tw-result" data-marpit-fragment>
+<div class="tw-arrow">↓</div>
+<pre><code><span class="hljs-string">"<span class="tw-part">tables</span>:<span class="tw-part">42</span>"</span></code></pre>
+</div>
+</div>
 
 <!--
-Looking at the topic we have here, the first atom is a unique name for your topic. This is not the shape of the topic on the wire. That part is defined by the list. So, the topic on the wire ends up becoming something "tables:42", "tables:7", etc.
+Looking at the topic we have here, the first atom is a unique name for your topic. This is not the shape of the topic on the wire. That part is defined by the list. So, the topic on the wire ends up becoming something "tables:42"
 -->
 
 ---

@@ -452,3 +452,64 @@ section.warning .warning-topic[data-bespoke-marp-fragment="active"] {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* A topic definition turning into the topic on the wire, in two clicks.
+ * First the placeholder becomes a value, then the wire topic fades in under it
+ * and the parts that make it up light up in both lines. A static export (PDF,
+ * PNG) has no fragments, so it shows the end state.
+ *   <div class="topic-wire">
+ *   <pre><code>... <span class="tw-swap"><span class="tw-old">:table_id</span>
+ *   <span class="tw-new tw-part" data-marpit-fragment>42</span></span>]</code></pre>
+ *   <div class="tw-result" data-marpit-fragment>
+ *   <div class="tw-arrow">↓</div>
+ *   <pre><code>"<span class="tw-part">tables</span>:...</code></pre>
+ *   </div>
+ *   </div> */
+section .topic-wire {
+  margin-top: 48px;
+}
+
+section .topic-wire pre {
+  display: inline-block;
+  margin: 0;
+  padding: 16px 28px;
+  font-size: 40px;
+}
+
+section .topic-wire .tw-arrow {
+  font-size: 56px;
+  line-height: 1;
+  color: var(--accent);
+  margin: 20px 0 20px 28px;
+}
+
+/* Before the first click, only the placeholder shows. After it, the value
+ * takes its place. */
+section .tw-swap .tw-new[data-bespoke-marp-fragment="inactive"],
+section .tw-swap:has(.tw-new:not([data-bespoke-marp-fragment="inactive"])) .tw-old {
+  display: none;
+}
+
+section .tw-swap .tw-new[data-bespoke-marp-fragment="active"] {
+  /* Backwards only: once the flash ends, the highlight transition can run. */
+  animation: tw-flash 0.9s ease-out backwards;
+}
+
+@keyframes tw-flash {
+  from { opacity: 0; color: var(--accent); background: rgba(200, 16, 46, 0.25); }
+  30% { opacity: 1; color: var(--accent); background: rgba(200, 16, 46, 0.25); }
+}
+
+section .tw-result[data-bespoke-marp-fragment="active"] {
+  animation: warning-fade 0.6s ease-in both;
+}
+
+/* Once the wire topic shows, the parts that build it light up in both lines. */
+section .tw-part {
+  border-radius: 4px;
+  transition: background 0.4s ease-in;
+}
+
+section .topic-wire:has(.tw-result:not([data-bespoke-marp-fragment="inactive"])) .tw-part {
+  background: rgba(200, 16, 46, 0.18);
+}
